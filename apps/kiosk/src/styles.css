@@ -3,8 +3,8 @@
 :root{
   --paper:#FAF8F3; --card:#FFFFFF; --ink:#22201B; --ink2:#6C6557; --line:#DDD6C7;
   --brand:#6A2C9E; --brand-ink:#FFFFFF;
-  --teal:#1F4D3D; --go:#3F7D5C; --go-hover:#1F4D3D; --go-soft:#3F7D5C;
-  --ok:#3F7D5C; --wait:#D9960B; --bad:#E0393E; --bad-soft:#FBE9E9;
+  --teal:#173B2F; --go:#2E6A4C; --go-hover:#1B4535; --go-soft:#2E6A4C;
+  --ok:#2E6A4C; --wait:#D9960B; --bad:#E0393E; --bad-soft:#FBE9E9;
   --off:#CFC8B8;
   --font:"Sora",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -154,6 +154,23 @@ td.r .btn{font-family:var(--font)}
 .sale{padding:10px 0;border-top:1px solid var(--line)}
 .sale:first-child{border-top:0}
 .sale small{color:var(--ink2);display:block}
+
+/* Açılış ekranı */
+.splash{position:fixed;inset:0;z-index:50;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;animation:splash-out .35s ease-in 2.25s forwards}
+.splash .mark{width:min(28vw,150px);height:auto;overflow:visible;margin-bottom:14px}
+.splash .drop{transform-box:fill-box;transform-origin:center;opacity:0;animation:drop-in .62s cubic-bezier(.2,.9,.25,1.15) forwards}
+.splash .crown{transform-box:fill-box;transform-origin:50% 100%;transform:scale(0);animation:crown-in .4s cubic-bezier(.3,1.5,.5,1) .78s forwards}
+.splash .word{font-weight:800;font-size:clamp(2.2rem,6vw,3.4rem);letter-spacing:-.035em;color:var(--ink);opacity:0;transform:translateY(8px);animation:fade-up .45s ease-out 1s forwards}
+.splash .hand{font-family:"Caveat",cursive;font-weight:700;font-size:clamp(1.6rem,4.4vw,2.4rem);color:var(--brand);line-height:1.1;clip-path:inset(0 100% 0 0);animation:write .8s steps(24,end) 1.3s forwards}
+@keyframes drop-in{from{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.35)}60%{opacity:1}to{opacity:1;transform:none}}
+@keyframes crown-in{to{transform:scale(1)}}
+@keyframes fade-up{to{opacity:1;transform:none}}
+@keyframes write{to{clip-path:inset(0 -4% 0 0)}}
+@keyframes splash-out{to{opacity:0;visibility:hidden}}
+@media (prefers-reduced-motion:reduce){
+  .splash{animation:splash-out .25s ease-in .6s forwards}
+  .splash .drop,.splash .crown,.splash .word,.splash .hand{animation:none;opacity:1;transform:none;clip-path:none}
+}
 
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:.88rem;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
 #toast.on{opacity:1}

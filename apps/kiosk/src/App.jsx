@@ -15,6 +15,7 @@ import SensorPanel from "./components/SensorPanel.jsx";
 import SystemView from "./components/SystemView.jsx";
 import PaySheet from "./components/PaySheet.jsx";
 import Logo from "./components/Logo.jsx";
+import Splash from "./components/Splash.jsx";
 
 const CART_NO = import.meta.env.VITE_CART_NO || "0417";
 const jitter = (w) => w * (1 + (Math.random() - 0.5) * 0.02);
@@ -28,6 +29,8 @@ export default function App() {
   const [log, setLog] = useState([]);
   const [pay, setPay] = useState(null);
   const [toast, setToast] = useState("");
+  const [splash, setSplash] = useState(true);
+  const endSplash = useCallback(() => setSplash(false), []);
   const scale = useScale();
 
   const addLog = (m, path, code, note) =>
@@ -165,6 +168,7 @@ export default function App() {
       {body}
       <PaySheet pay={pay} total={cartTotal(cart, products)} onMethod={checkout} onClose={() => setPay(null)} />
       <div id="toast" className={toast ? "on" : ""} role="status" aria-live="polite">{toast}</div>
+      {splash && <Splash onDone={endSplash} />}
     </div>
   );
 }

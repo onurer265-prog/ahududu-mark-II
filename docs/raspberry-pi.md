@@ -15,9 +15,11 @@
    [Desktop Entry]
    Type=Application
    Name=Ahududu Kiosk
-   Exec=chromium-browser --kiosk --incognito --noerrdialogs http://localhost:5173
+   Exec=chromium-browser --kiosk --incognito --noerrdialogs --autoplay-policy=no-user-gesture-required http://localhost:5173
    X-GNOME-Autostart-enabled=true
    ```
+   `--autoplay-policy=no-user-gesture-required` olmadan Chromium, ekrana dokunulmadan ses çalmaz;
+   açılış tonu bu bayrakla çalışır. Normal tarayıcıda açılış sessiz geçer, animasyon yine oynar.
 8. Seri port izni: `sudo usermod -aG dialout $USER` (sonra yeniden giriş). Port: `ls /dev/ttyUSB* /dev/ttyACM*`
 9. Ses testi: `speaker-test -t wav -c 2`
 
