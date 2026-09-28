@@ -138,6 +138,50 @@ input:disabled{background:var(--paper);color:var(--ink2)}
 .entry .row.end{justify-content:flex-end}
 .err{margin:0;color:var(--bad);font-size:.82rem;font-weight:600}
 
+/* Arabalar — aşama renkleri: bekliyor gri, alışverişte mor, uyarı kırmızı, ödemede yeşil, tamamlandı açık yeşil, bağlantı yok kesikli */
+.fleet{display:grid;gap:16px}
+.fleet .tiles{margin-top:0}
+.tile.bad{background:var(--bad-soft);border-color:#EDB9B9}
+.tile.bad strong{color:#A3232A}
+.tile.bad i{font-style:normal}
+.fleet .head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.fleet .head h3{margin:0}
+.legend{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.74rem;color:var(--ink2)}
+.legend li{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.st-idle{--st:#948C7B}.st-shopping{--st:var(--brand)}.st-alert{--st:var(--bad)}.st-paying{--st:var(--go)}.st-paid{--st:#7FB59A}.st-stale{--st:#C9C2B2}
+.legend i{background:var(--st)}
+.legend i.st-stale{background:none;border:1.5px dashed var(--st)}
+.map{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+.zone{border:1px solid var(--line);border-radius:8px;padding:10px;min-height:96px;background:repeating-linear-gradient(0deg,transparent 0 18px,var(--line2) 18px 19px)}
+.zone.edge{background:var(--paper)}
+.zone b{display:block;font-size:.8rem}
+.zone small{display:block;font-size:.7rem;color:var(--ink3);margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-family:var(--mono);font-size:.72rem;font-weight:500;color:#fff;background:var(--st);padding:2px 7px;border-radius:999px}
+.chip.st-stale{background:#fff;color:var(--ink2);border:1.5px dashed var(--st)}
+.carts{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.cartcard{box-shadow:inset 3px 0 0 var(--st)}
+.cartcard .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.cartcard h3{margin:0;font-family:var(--mono);font-weight:500;font-size:1.05rem}
+.cartcard .tag{background:var(--st);color:#fff}
+.cartcard .tag.st-stale{background:#fff;color:var(--ink2);border:1.5px dashed var(--st)}
+.cartcard .tag.st-alert::before{content:"⚠ "}
+.cartcard dl{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;margin:0;font-size:.84rem}
+.cartcard dt{color:var(--ink2);font-size:.76rem}
+.cartcard dd{margin:0;text-align:right}
+.cartcard .v-bad{color:#A3232A;font-weight:600}
+.cartcard .v-wait{color:#7A4E0E}
+.cartcard.st-stale dd{color:var(--ink3)}
+.batt{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end}
+.batt i{width:34px;height:14px;border:1.5px solid var(--ink2);border-radius:3px;padding:1px;position:relative}
+.batt i::after{content:"";position:absolute;right:-4px;top:3px;width:2px;height:5px;background:var(--ink2);border-radius:0 1px 1px 0}
+.batt i b{display:block;height:100%;background:var(--go);border-radius:1px}
+.batt.low i b{background:var(--bad)}
+.batt small{font-size:.7rem;color:var(--ink2)}
+.batt.low small{color:#A3232A;font-weight:600}
+.batt.none small{color:var(--ink3)}
+
 /* Reklamlar — önizleme kiosk'taki kartla aynı (apps/kiosk/src/styles.css "Reklam alanları") */
 .ad{position:relative;border-radius:8px;overflow:hidden;color:#fff;text-align:left}
 .tone-purple{background:var(--brand);color:#fff}

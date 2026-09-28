@@ -13,4 +13,5 @@ export const api = {
   products: () => req("/products"),
   ads: () => req("/ads"),
   checkout: (payload) => req("/checkout", { method: "POST", body: JSON.stringify(payload) }),
+  status: (cartNo, s) => req("/carts/" + encodeURIComponent(cartNo), { method: "POST", body: JSON.stringify(s) }),
 };

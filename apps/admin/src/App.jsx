@@ -4,12 +4,13 @@ import Logo from "./components/Logo.jsx";
 import Overview from "./components/Overview.jsx";
 import Products from "./components/Products.jsx";
 import Ads from "./components/Ads.jsx";
+import Fleet from "./components/Fleet.jsx";
 
-const TABS = [["overview", "Genel Bakış", ""], ["products", "Ürün Girişi", "#urunler"], ["ads", "Reklamlar", "#reklamlar"]];
+const TABS = [["overview", "Genel Bakış", ""], ["fleet", "Arabalar", "#arabalar"], ["products", "Ürün Girişi", "#urunler"], ["ads", "Reklamlar", "#reklamlar"]];
 
 export default function App() {
   const [tab, setTab] = useState(() => (TABS.find((t) => t[2] && t[2] === location.hash) || TABS[0])[0]);
-  const [data, setData] = useState({ products: [], sales: [], rejects: [], ads: [] });
+  const [data, setData] = useState({ products: [], sales: [], rejects: [], ads: [], carts: [] });
   const [online, setOnline] = useState(null); // null: ilk yükleme
   const [updated, setUpdated] = useState(null);
   const [toast, setToast] = useState("");
@@ -17,12 +18,12 @@ export default function App() {
   const say = useCallback((m) => { setToast(m); clearTimeout(say.t); say.t = setTimeout(() => setToast(""), 2600); }, []);
   const refresh = useCallback(async () => {
     try {
-      const [products, sales, rejects, ads] = await Promise.all([api.products(), api.sales(), api.rejects(), api.ads()]);
-      setData({ products, sales, rejects, ads }); setOnline(true); setUpdated(new Date());
+      const [products, sales, rejects, ads, carts] = await Promise.all([api.products(), api.sales(), api.rejects(), api.ads(), api.carts().catch(() => [])]);
+      setData({ products, sales, rejects, ads, carts }); setOnline(true); setUpdated(new Date());
     } catch { setOnline(false); }
   }, []);
-  // Arabalardan gelen satışlar için 10 sn'de bir yenile
-  useEffect(() => { refresh(); const id = setInterval(refresh, 10000); return () => clearInterval(id); }, [refresh]);
+  // Arabalar sekmesinde 3 sn'de bir (canlı durum), diğerlerinde 10 sn'de bir yenile
+  useEffect(() => { refresh(); const id = setInterval(refresh, tab === "fleet" ? 3000 : 10000); return () => clearInterval(id); }, [refresh, tab]);
   useEffect(() => { history.replaceState(null, "", TABS.find((t) => t[0] === tab)[2] || "#"); }, [tab]);
 
   async function save(p, isEdit) {
@@ -64,6 +65,7 @@ export default function App() {
       {online === false && <div className="alert" role="alert">Sunucu kapalı. <code>npm run dev:server</code> ile başlatın; panel 10 saniyede bir yeniden dener.</div>}
       <main>
         {tab === "overview" && <Overview {...data} />}
+        {tab === "fleet" && <Fleet carts={data.carts} />}
         {tab === "products" && <Products products={data.products} sales={data.sales} onSave={save} onDelete={remove} />}
         {tab === "ads" && <Ads ads={data.ads} onSave={saveAd} onDelete={removeAd} />}
       </main>

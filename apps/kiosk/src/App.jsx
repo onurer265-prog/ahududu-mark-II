@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_PRODUCTS, DEFAULT_ADS, addToCart, removeFromCart, cartTotal, expectedWeight,
-  verifyWeight, canCheckout, findProduct, adsFor,
+  verifyWeight, canCheckout, findProduct, adsFor, cartStage,
 } from "@ahududu/domain";
+import { useBattery } from "./lib/useBattery.js";
 import { api } from "./lib/api.js";
 import { useScale } from "./lib/useScale.js";
 import { useBarcodeScanner } from "./lib/useBarcodeScanner.js";
@@ -16,7 +17,9 @@ import Logo from "./components/Logo.jsx";
 import Splash from "./components/Splash.jsx";
 import AdSlot from "./components/AdSlot.jsx";
 
-const CART_NO = import.meta.env.VITE_CART_NO || "0417";
+// Araba no: ?araba=0418 (aynı bilgisayarda ikinci arabayı denemek için) > VITE_CART_NO > 0417
+const CART_NO = new URLSearchParams(location.search).get("araba") || import.meta.env.VITE_CART_NO || "0417";
+const HEARTBEAT_MS = 5000;
 const jitter = (w) => w * (1 + (Math.random() - 0.5) * 0.02);
 
 // Kiosk yalnızca müşteri ekranlarını içerir. Ürün, satış ve reklam yönetimi apps/admin'de.
@@ -30,7 +33,9 @@ export default function App() {
   const [toast, setToast] = useState("");
   const [splash, setSplash] = useState(true);
   const endSplash = useCallback(() => setSplash(false), []);
+  const [aisle, setAisle] = useState(null); // konum (F1): son okutulan ürünün reyonu
   const scale = useScale();
+  const battery = useBattery();
 
   const say = useCallback((msg) => { setToast(msg); clearTimeout(say.t); say.t = setTimeout(() => setToast(""), 2600); }, []);
 
@@ -60,6 +65,7 @@ export default function App() {
     if (!p) { sound.warn(); say("Bu barkod veritabanında yok: " + bc); return false; }
     setCart((c) => addToCart(c, bc));
     setScreen("shop");
+    if (p.aisle) setAisle(p.aisle);
     sound.scan(); say(p.name + " sepete eklendi");
     return true;
   }, [products, say]);
@@ -91,9 +97,24 @@ export default function App() {
     }
     if (!sale) { setPay(null); sound.warn(); say("Ödeme reddedildi: ağırlık doğrulanmadı."); return; }
     sound.ok();
-    setCart([]); scale.simReset();
+    setCart([]); scale.simReset(); setAisle(null);
     setPay({ stage: "done", sale });
   }
+
+  // Panel için araba durumu: değişince hemen, değişmese de 5 sn'de bir (bağlantı canlı mı diye)
+  const itemCount = cart.reduce((a, i) => a + i.qty, 0);
+  const status = JSON.stringify({
+    stage: cartStage({ screen, cartItems: itemCount, verifyKind: verify.kind, payStage: pay?.stage }),
+    items: itemCount, total: cartTotal(cart, products), verify: verify.kind,
+    battery, aisle, scale: scale.connected,
+  });
+  useEffect(() => {
+    if (!online) return;
+    const send = () => api.status(CART_NO, JSON.parse(status)).catch(() => {});
+    send();
+    const id = setInterval(send, HEARTBEAT_MS);
+    return () => clearInterval(id);
+  }, [status, online]);
 
   const done = pay?.stage === "done";
   const shopping = !done && screen === "shop";

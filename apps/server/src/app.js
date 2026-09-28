@@ -1,6 +1,6 @@
 // Ahududu API — ürünler, ödeme, satışlar. Bağımlılıksız (node:http).
 import http from "node:http";
-import { cartTotal, canCheckout, cleanAd, cleanProduct, findProduct, validateAd, validateProduct, verifyWeight } from "@ahududu/domain";
+import { cartTotal, canCheckout, cleanAd, cleanCartStatus, cleanProduct, findProduct, validateAd, validateProduct, verifyWeight } from "@ahududu/domain";
 
 const MAX_REJECTS = 500;
 
@@ -82,6 +82,18 @@ export function createApp(store) {
 
       if (parts[1] === "sales" && req.method === "GET") return send(res, 200, db.sales);
       if (parts[1] === "rejects" && req.method === "GET") return send(res, 200, db.rejects);
+
+      // Araba durumları: kiosk ~5 sn'de bir POST eder, panel GET ile okur. Bellekte tutulur (diske yazılmaz).
+      if (parts[1] === "carts" && parts.length === 2 && req.method === "GET") {
+        return send(res, 200, [...store.carts.values()].sort((a, b) => a.id.localeCompare(b.id)));
+      }
+      if (parts[1] === "carts" && parts.length === 3 && req.method === "POST") {
+        const { status, error } = cleanCartStatus(parts[2], await readJson(req));
+        if (error) return send(res, 400, { error });
+        const rec = { ...status, seen: new Date().toISOString() };
+        store.carts.set(rec.id, rec);
+        return send(res, 200, rec);
+      }
 
       // Reklamlar: kiosk GET ile hepsini alır ve yayında olanları gösterir; panel ekler / düzenler / siler.
       if (parts[1] === "ads" && parts.length === 2) {

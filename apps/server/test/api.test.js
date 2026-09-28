@@ -55,6 +55,17 @@ test("reklam yönetimi", () => withServer(async (b) => {
   assert.equal((await json(await fetch(b + "/ads"))).length, 5);
 }));
 
+test("araba durumları", () => withServer(async (b) => {
+  const post = (id, body) => fetch(b + "/carts/" + id, { method: "POST", body: JSON.stringify(body) });
+  assert.equal((await post("0417", { stage: "yok" })).status, 400);
+  assert.equal((await post("0417", { stage: "shopping", items: 3, total: 71.4, verify: "ok", battery: { level: 0.8, charging: false }, aisle: 3, scale: false })).status, 200);
+  await post("0418", { stage: "idle" });
+  await post("0417", { stage: "paying", items: 3, total: 71.4, verify: "ok", aisle: 3 }); // son durum geçerli
+  const carts = await (await fetch(b + "/carts")).json();
+  assert.deepEqual(carts.map((c) => [c.id, c.stage]), [["0417", "paying"], ["0418", "idle"]]);
+  assert.ok(Date.now() - Date.parse(carts[0].seen) < 5000);
+}));
+
 test("ürün düzenleme", () => withServer(async (b) => {
   const put = (bc, body) => fetch(b + "/products/" + bc, { method: "PUT", body: JSON.stringify(body) });
   const ok = await put("8690001000012", { barcode: "999999", name: "Süt (1L)", price: 36.9, weight: 1030, emoji: "🥛" });

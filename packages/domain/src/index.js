@@ -1,16 +1,88 @@
 // Ahududu domain mantığı — kiosk, sunucu ve testler aynı kuralları kullanır.
 
-/** Demo ürün kataloğu (Mark I kiosk'undaki raf ile aynı). weight: gram, emoji: raf görseli */
-export const DEFAULT_PRODUCTS = [
-  { barcode: "8690001000012", name: "Süt (1L)", price: 34.5, weight: 1030, emoji: "🥛" },
-  { barcode: "8690001000029", name: "Ekmek", price: 12, weight: 350, emoji: "🍞" },
-  { barcode: "8690001000036", name: "Yumurta (10'lu)", price: 68, weight: 620, emoji: "🥚" },
-  { barcode: "8690001000043", name: "Domates (kg)", price: 28.9, weight: 1000, emoji: "🍅" },
-  { barcode: "8690001000050", name: "Makarna (500g)", price: 22.5, weight: 500, emoji: "🍝" },
-  { barcode: "8690001000067", name: "Zeytinyağı (1L)", price: 189, weight: 920, emoji: "🫒" },
-  { barcode: "8690001000074", name: "Elma (kg)", price: 24.9, weight: 1000, emoji: "🍎" },
-  { barcode: "8690001000081", name: "Peynir (500g)", price: 145, weight: 505, emoji: "🧀" },
+/** Market reyonları — ürünün "aisle" alanı buradaki no. Araba konumu (F1) son okutulan ürünün reyonundan tahmin edilir. */
+export const AISLES = [
+  { no: 1, name: "Fırın" },
+  { no: 2, name: "Kahvaltılık" },
+  { no: 3, name: "Manav" },
+  { no: 4, name: "Kuru gıda" },
+  { no: 5, name: "Şarküteri" },
 ];
+
+/** Demo ürün kataloğu (Mark I kiosk'undaki raf ile aynı). weight: gram, emoji: raf görseli, aisle: reyon no */
+export const DEFAULT_PRODUCTS = [
+  { barcode: "8690001000012", name: "Süt (1L)", price: 34.5, weight: 1030, emoji: "🥛", aisle: 2 },
+  { barcode: "8690001000029", name: "Ekmek", price: 12, weight: 350, emoji: "🍞", aisle: 1 },
+  { barcode: "8690001000036", name: "Yumurta (10'lu)", price: 68, weight: 620, emoji: "🥚", aisle: 2 },
+  { barcode: "8690001000043", name: "Domates (kg)", price: 28.9, weight: 1000, emoji: "🍅", aisle: 3 },
+  { barcode: "8690001000050", name: "Makarna (500g)", price: 22.5, weight: 500, emoji: "🍝", aisle: 4 },
+  { barcode: "8690001000067", name: "Zeytinyağı (1L)", price: 189, weight: 920, emoji: "🫒", aisle: 4 },
+  { barcode: "8690001000074", name: "Elma (kg)", price: 24.9, weight: 1000, emoji: "🍎", aisle: 3 },
+  { barcode: "8690001000081", name: "Peynir (500g)", price: 145, weight: 505, emoji: "🧀", aisle: 5 },
+];
+
+/**
+ * Araba durumu (kiosk → sunucu → panel). stage: alışveriş aşaması.
+ * zone: "entry" (giriş / bekliyor), "aisle" (reyonda, aisle no ile), "exit" (ödeme / çıkış).
+ */
+export const CART_STAGES = {
+  idle: "Bekliyor",
+  shopping: "Alışverişte",
+  alert: "Okutulmamış ürün",
+  paying: "Ödemede",
+  paid: "Ödeme tamamlandı",
+};
+export const CART_STALE_MS = 20000; // bu süredir haber yoksa araba "bağlantı yok"
+export const LOW_BATTERY = 0.2;
+
+/** Kiosk durumundan aşamayı çıkarır. */
+export function cartStage({ screen, cartItems, verifyKind, payStage }) {
+  if (payStage === "done") return "paid";
+  if (payStage) return "paying";
+  if (screen === "welcome" && !cartItems) return "idle";
+  if (verifyKind === "bad") return "alert";
+  return "shopping";
+}
+
+/** Sunucuya giden durum kaydını temizler / doğrular. Hata mesajı ya da temiz kayıt döner. */
+export function cleanCartStatus(id, s) {
+  if (!/^[\w-]{1,20}$/.test(String(id))) return { error: "Geçersiz araba no" };
+  if (!s || !CART_STAGES[s.stage]) return { error: "Geçersiz aşama" };
+  const num = (v, min, max) => (Number.isFinite(Number(v)) ? Math.min(max, Math.max(min, Number(v))) : null);
+  const b = s.battery;
+  return {
+    status: {
+      id: String(id), stage: s.stage,
+      items: num(s.items, 0, 999) ?? 0, total: num(s.total, 0, 1e6) ?? 0,
+      verify: ["empty", "ok", "wait", "bad"].includes(s.verify) ? s.verify : "empty",
+      battery: b && Number.isFinite(Number(b.level)) ? { level: num(b.level, 0, 1), charging: !!b.charging } : null,
+      aisle: AISLES.some((a) => a.no === Number(s.aisle)) ? Number(s.aisle) : null,
+      scale: !!s.scale,
+    },
+  };
+}
+
+/** Panel için: bağlantısı kopan arabaları işaretler, özet sayar. */
+export function fleetSummary(carts, now = Date.now()) {
+  const list = carts.map((c) => ({ ...c, stale: now - new Date(c.seen).getTime() > CART_STALE_MS }));
+  const live = list.filter((c) => !c.stale);
+  return {
+    list,
+    total: list.length,
+    active: live.filter((c) => c.stage === "shopping" || c.stage === "alert" || c.stage === "paying").length,
+    paying: live.filter((c) => c.stage === "paying").length,
+    alerts: live.filter((c) => c.stage === "alert").length,
+    lowBattery: live.filter((c) => c.battery && !c.battery.charging && c.battery.level < LOW_BATTERY).length,
+    offline: list.length - live.length,
+  };
+}
+
+/** Haritada nerede: "entry" | "exit" | reyon no */
+export function cartZone(c) {
+  if (c.stage === "paying" || c.stage === "paid") return "exit";
+  if (c.stage === "idle" || !c.aisle) return "entry";
+  return c.aisle;
+}
 
 /**
  * Kiosk reklamları. tone: zemin ("purple" | "green" | "cream"), place: "side" (sağ üst) | "bottom" (alt bant) | "both".
@@ -119,6 +191,7 @@ export function validateProduct(p, products = [], { update = false } = {}) {
 export function cleanProduct(p) {
   const prod = { barcode: String(p.barcode), name: String(p.name).trim(), price: Number(p.price), weight: Number(p.weight) };
   if (p.emoji) prod.emoji = String(p.emoji).trim().slice(0, 8);
+  if (AISLES.some((a) => a.no === Number(p.aisle))) prod.aisle = Number(p.aisle);
   return prod;
 }
 

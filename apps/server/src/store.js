@@ -8,6 +8,10 @@ export function createStore(file) {
   if (file && fs.existsSync(file)) {
     try { db = { ...db, ...JSON.parse(fs.readFileSync(file, "utf8")) }; } catch { /* bozuk dosya: varsayılanla devam */ }
   }
+  // Eski kayıtlara reyon ekle (reyon alanı sonradan geldi)
+  for (const p of db.products) {
+    if (p.aisle == null) { const d = DEFAULT_PRODUCTS.find((x) => x.barcode === p.barcode); if (d) p.aisle = d.aisle; }
+  }
   const save = () => {
     if (!file) return;
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -15,6 +19,7 @@ export function createStore(file) {
   };
   return {
     get db() { return db; },
+    carts: new Map(), // araba durumları — canlı veri, diske yazılmaz
     save,
     nextSaleId() { db.seq += 1; return "F-" + db.seq; },
   };

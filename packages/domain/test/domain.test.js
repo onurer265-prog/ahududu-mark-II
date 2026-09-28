@@ -4,6 +4,7 @@ import {
   DEFAULT_PRODUCTS as P, addToCart, removeFromCart, expectedWeight, cartTotal,
   verifyWeight, canCheckout, validateProduct, cleanProduct, salesSummary, bucketSales,
   DEFAULT_ADS, validateAd, cleanAd, adsFor,
+  cartStage, cleanCartStatus, fleetSummary, cartZone,
 } from "../src/index.js";
 
 const SUT = "8690001000012", CIK = "8690001000029"; // Süt 1030 g / 34,50 ₺ · Ekmek 350 g / 12 ₺
@@ -86,6 +87,35 @@ test("reklam doğrulama ve alanlar", () => {
   assert.deepEqual(adsFor(ads, "side").map((a) => a.id), ["a", "b"]);
   assert.deepEqual(adsFor(ads, "bottom").map((a) => a.id), ["a", "c"]);
   for (const a of DEFAULT_ADS) assert.equal(validateAd(a), null);
+});
+
+test("araba aşaması, durum kaydı ve filo özeti", () => {
+  assert.equal(cartStage({ screen: "welcome", cartItems: 0 }), "idle");
+  assert.equal(cartStage({ screen: "shop", cartItems: 0, verifyKind: "empty" }), "shopping");
+  assert.equal(cartStage({ screen: "shop", cartItems: 2, verifyKind: "bad" }), "alert");
+  assert.equal(cartStage({ screen: "shop", cartItems: 2, payStage: "choose" }), "paying");
+  assert.equal(cartStage({ screen: "shop", cartItems: 0, payStage: "done" }), "paid");
+
+  assert.equal(cleanCartStatus("0417", { stage: "uçuyor" }).error, "Geçersiz aşama");
+  assert.equal(cleanCartStatus("../x", { stage: "idle" }).error, "Geçersiz araba no");
+  const { status } = cleanCartStatus("0417", { stage: "shopping", items: 3, total: 71.4, verify: "ok", battery: { level: 1.7, charging: 1 }, aisle: 9, scale: true, extra: "x" });
+  assert.deepEqual(status, { id: "0417", stage: "shopping", items: 3, total: 71.4, verify: "ok", battery: { level: 1, charging: true }, aisle: null, scale: true });
+  assert.equal(cleanCartStatus("0418", { stage: "idle", battery: null }).status.battery, null);
+
+  const now = Date.parse("2026-09-28T12:00:30Z");
+  const seen = (s) => new Date(now - s * 1000).toISOString();
+  const f = fleetSummary([
+    { id: "1", stage: "shopping", seen: seen(2), battery: { level: 0.1, charging: false }, aisle: 3 },
+    { id: "2", stage: "alert", seen: seen(5), battery: { level: 0.1, charging: true } },
+    { id: "3", stage: "paying", seen: seen(1), battery: null },
+    { id: "4", stage: "shopping", seen: seen(60), battery: { level: 0.05, charging: false } }, // bağlantı yok
+    { id: "5", stage: "idle", seen: seen(3), battery: { level: 0.9, charging: false } },
+  ], now);
+  assert.deepEqual([f.total, f.active, f.paying, f.alerts, f.lowBattery, f.offline], [5, 3, 1, 1, 1, 1]);
+  assert.equal(f.list[3].stale, true);
+  assert.deepEqual(f.list.map(cartZone), [3, "entry", "exit", "entry", "entry"]);
+  assert.equal(cleanProduct({ barcode: "123456", name: "x", price: 1, weight: 1, aisle: "3" }).aisle, 3);
+  assert.equal(cleanProduct({ barcode: "123456", name: "x", price: 1, weight: 1, aisle: 42 }).aisle, undefined);
 });
 
 test("saatlik ve günlük kovalar", () => {

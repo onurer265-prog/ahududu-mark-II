@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { salesSummary, validateProduct, cleanProduct } from "@ahududu/domain";
+import { salesSummary, validateProduct, cleanProduct, AISLES } from "@ahududu/domain";
 import { price, kg } from "../format.js";
 
-const EMPTY = { barcode: "", name: "", price: "", weight: "", emoji: "" };
+const EMPTY = { barcode: "", name: "", price: "", weight: "", emoji: "", aisle: "" };
 
 export default function Products({ products, sales, onSave, onDelete }) {
   const [q, setQ] = useState("");
@@ -17,7 +17,7 @@ export default function Products({ products, sales, onSave, onDelete }) {
   });
 
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
-  const edit = (p) => { setEditing(p.barcode); setErr(""); setF({ barcode: p.barcode, name: p.name, price: String(p.price), weight: String(p.weight), emoji: p.emoji || "" }); };
+  const edit = (p) => { setEditing(p.barcode); setErr(""); setF({ barcode: p.barcode, name: p.name, price: String(p.price), weight: String(p.weight), emoji: p.emoji || "", aisle: p.aisle ? String(p.aisle) : "" }); };
   const reset = () => { setEditing(null); setErr(""); setF(EMPTY); };
 
   async function submit(e) {
@@ -38,7 +38,7 @@ export default function Products({ products, sales, onSave, onDelete }) {
         </div>
         <div className="scroll">
           <table className="tbl">
-            <thead><tr><th /><th>Ürün</th><th>Barkod</th><th className="r">Fiyat</th><th className="r">Ağırlık</th><th className="r">Satılan</th><th /></tr></thead>
+            <thead><tr><th /><th>Ürün</th><th>Barkod</th><th className="r">Fiyat</th><th className="r">Ağırlık</th><th>Reyon</th><th className="r">Satılan</th><th /></tr></thead>
             <tbody>
               {list.map((p) => (
                 <tr key={p.barcode} className={editing === p.barcode ? "sel" : ""}>
@@ -47,6 +47,7 @@ export default function Products({ products, sales, onSave, onDelete }) {
                   <td><code>{p.barcode}</code></td>
                   <td className="r">{price(p.price)}</td>
                   <td className="r">{kg(p.weight)}</td>
+                  <td>{p.aisle ? `${p.aisle} · ${AISLES.find((a) => a.no === p.aisle)?.name}` : <span className="muted">—</span>}</td>
                   <td className="r">{sold.get(p.barcode) || 0}</td>
                   <td className="acts">
                     <button className="btn sm plain" onClick={() => edit(p)}>Düzenle</button>
@@ -54,7 +55,7 @@ export default function Products({ products, sales, onSave, onDelete }) {
                   </td>
                 </tr>
               ))}
-              {!list.length && <tr><td colSpan={7} className="muted">“{q}” ile eşleşen ürün yok.</td></tr>}
+              {!list.length && <tr><td colSpan={8} className="muted">“{q}” ile eşleşen ürün yok.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -81,6 +82,12 @@ export default function Products({ products, sales, onSave, onDelete }) {
               <input value={f.emoji} onChange={set("emoji")} placeholder="🥛" maxLength={8} />
             </label>
           </div>
+          <label>Reyon <em>arabanın konumu buna göre tahmin edilir</em>
+            <select value={f.aisle} onChange={set("aisle")}>
+              <option value="">Seçilmedi</option>
+              {AISLES.map((a) => <option key={a.no} value={a.no}>{a.no} · {a.name}</option>)}
+            </select>
+          </label>
           {err && <p className="err" role="alert">{err}</p>}
           <div className="row end">
             {editing && <button type="button" className="btn plain" onClick={reset}>Vazgeç</button>}
