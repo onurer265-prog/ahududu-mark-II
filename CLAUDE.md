@@ -6,6 +6,8 @@ Bu dosya Claude Code için proje bağlamıdır. Kullanıcıyla **Türkçe** konu
 - İlk proje eski bilgisayarda yerel bir Claude Code oturumundaydı ve GitHub'a hiç yüklenmemişti.
   Bilgisayar bozulunca kod kaybedildi (Eylül 2026). Bu depo, claude.ai'da kalan
   yayınlanmış sayfalardan (simülasyon, rehberler, donanım listesi) **yeniden kuruldu**.
+- Bu depo **Ahududu Mark II**. Eski bilgisayardaki kayıp sürüm Mark I; arayüzü Mark I videolarından birebir yeniden yapıldı.
+- GitHub (gizli): https://github.com/onurer265-prog/ahududu-mark-II — yerelde `C:\Users\onure\Ahududu\ahududu-market`.
 - **Kural:** her anlamlı adımdan sonra commit + `git push`. Kod bir daha tek diskte kalmasın.
 
 ## Ürün fikri
