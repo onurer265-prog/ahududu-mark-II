@@ -4,7 +4,7 @@ import {
   DEFAULT_PRODUCTS as P, addToCart, removeFromCart, expectedWeight, cartTotal,
   verifyWeight, canCheckout, validateProduct, cleanProduct, salesSummary, bucketSales,
   DEFAULT_ADS, validateAd, cleanAd, adsFor,
-  cartStage, cleanCartStatus, fleetSummary, cartZone,
+  cartStage, cleanCartStatus, fleetSummary, cartZone, AISLES, ean13,
 } from "../src/index.js";
 
 const SUT = "8690001000012", CIK = "8690001000029"; // Süt 1030 g / 34,50 ₺ · Ekmek 350 g / 12 ₺
@@ -98,7 +98,7 @@ test("araba aşaması, durum kaydı ve filo özeti", () => {
 
   assert.equal(cleanCartStatus("0417", { stage: "uçuyor" }).error, "Geçersiz aşama");
   assert.equal(cleanCartStatus("../x", { stage: "idle" }).error, "Geçersiz araba no");
-  const { status } = cleanCartStatus("0417", { stage: "shopping", items: 3, total: 71.4, verify: "ok", battery: { level: 1.7, charging: 1 }, aisle: 9, scale: true, extra: "x" });
+  const { status } = cleanCartStatus("0417", { stage: "shopping", items: 3, total: 71.4, verify: "ok", battery: { level: 1.7, charging: 1 }, aisle: 42, scale: true, extra: "x" });
   assert.deepEqual(status, { id: "0417", stage: "shopping", items: 3, total: 71.4, verify: "ok", battery: { level: 1, charging: true }, aisle: null, scale: true });
   assert.equal(cleanCartStatus("0418", { stage: "idle", battery: null }).status.battery, null);
 
@@ -116,6 +116,22 @@ test("araba aşaması, durum kaydı ve filo özeti", () => {
   assert.deepEqual(f.list.map(cartZone), [3, "entry", "exit", "entry", "entry"]);
   assert.equal(cleanProduct({ barcode: "123456", name: "x", price: 1, weight: 1, aisle: "3" }).aisle, 3);
   assert.equal(cleanProduct({ barcode: "123456", name: "x", price: 1, weight: 1, aisle: 42 }).aisle, undefined);
+});
+
+test("katalog: barkodlar, ürünler, reyonlar, reklamlar", () => {
+  assert.ok(P.length > 150);
+  const codes = P.map((p) => p.barcode);
+  assert.equal(new Set(codes).size, codes.length, "barkodlar benzersiz");
+  // Üretilen demo barkodlar geçerli EAN-13 (Mark I'in 869… barkodlarının kontrol hanesi geçersiz, bkz. CLAUDE.md)
+  for (const c of codes.filter((c) => c.startsWith("20"))) assert.equal(ean13(c.slice(0, 12)), c, "geçerli EAN-13: " + c);
+  for (const p of P) assert.equal(validateProduct(p), null, p.name);
+  for (const a of AISLES) assert.ok(P.some((p) => p.aisle === a.no), "reyon boş değil: " + a.name);
+  assert.ok(P.every((p) => AISLES.some((a) => a.no === p.aisle)));
+  assert.equal(ean13("400638133393"), "4006381333931"); // bilinen gerçek EAN-13 örneği
+  assert.equal(P[0].barcode, SUT);                      // Mark I ürünleri korunur
+  const brands = new Set(P.map((p) => p.brand).filter(Boolean));
+  for (const ad of DEFAULT_ADS) assert.ok(brands.has(ad.brand), "reklam markası katalogda: " + ad.brand);
+  assert.equal(new Set(DEFAULT_ADS.map((a) => a.id)).size, DEFAULT_ADS.length);
 });
 
 test("saatlik ve günlük kovalar", () => {

@@ -3,6 +3,6 @@
   "version": "0.2.0",
   "type": "module",
   "main": "src/index.js",
-  "exports": { ".": "./src/index.js", "./logo": "./src/logo.js" },
+  "exports": { ".": "./src/index.js", "./logo": "./src/logo.js", "./catalog": "./src/catalog.js" },
   "scripts": { "test": "node --test test/*.test.js" }
 }

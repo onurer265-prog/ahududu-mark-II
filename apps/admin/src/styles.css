@@ -127,6 +127,8 @@ main{max-width:1240px;margin:0 auto;padding:22px 20px 48px}
 .products .head h3{margin:0}
 input[type=search],.entry input{background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px;width:100%;min-width:0}
 input[type=search]{max-width:280px}
+.filters-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters-row select{background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 10px;font:inherit;font-size:.86rem;color:var(--ink)}
 input:disabled{background:var(--paper);color:var(--ink2)}
 .entry{position:sticky;top:16px}
 .entry .muted{margin-bottom:14px}

@@ -1,25 +1,8 @@
 // Ahududu domain mantığı — kiosk, sunucu ve testler aynı kuralları kullanır.
 
-/** Market reyonları — ürünün "aisle" alanı buradaki no. Araba konumu (F1) son okutulan ürünün reyonundan tahmin edilir. */
-export const AISLES = [
-  { no: 1, name: "Fırın" },
-  { no: 2, name: "Kahvaltılık" },
-  { no: 3, name: "Manav" },
-  { no: 4, name: "Kuru gıda" },
-  { no: 5, name: "Şarküteri" },
-];
-
-/** Demo ürün kataloğu (Mark I kiosk'undaki raf ile aynı). weight: gram, emoji: raf görseli, aisle: reyon no */
-export const DEFAULT_PRODUCTS = [
-  { barcode: "8690001000012", name: "Süt (1L)", price: 34.5, weight: 1030, emoji: "🥛", aisle: 2 },
-  { barcode: "8690001000029", name: "Ekmek", price: 12, weight: 350, emoji: "🍞", aisle: 1 },
-  { barcode: "8690001000036", name: "Yumurta (10'lu)", price: 68, weight: 620, emoji: "🥚", aisle: 2 },
-  { barcode: "8690001000043", name: "Domates (kg)", price: 28.9, weight: 1000, emoji: "🍅", aisle: 3 },
-  { barcode: "8690001000050", name: "Makarna (500g)", price: 22.5, weight: 500, emoji: "🍝", aisle: 4 },
-  { barcode: "8690001000067", name: "Zeytinyağı (1L)", price: 189, weight: 920, emoji: "🫒", aisle: 4 },
-  { barcode: "8690001000074", name: "Elma (kg)", price: 24.9, weight: 1000, emoji: "🍎", aisle: 3 },
-  { barcode: "8690001000081", name: "Peynir (500g)", price: 145, weight: 505, emoji: "🧀", aisle: 5 },
-];
+// Katalog (reyonlar, ≈180 ürün, markalı reklamlar) ayrı dosyada.
+import { AISLES } from "./catalog.js";
+export { AISLES, DEFAULT_PRODUCTS, DEFAULT_ADS, CATALOG_VERSION, LEGACY_AD_IDS, ean13 } from "./catalog.js";
 
 /**
  * Araba durumu (kiosk → sunucu → panel). stage: alışveriş aşaması.
@@ -90,13 +73,6 @@ export function cartZone(c) {
  */
 export const AD_TONES = ["purple", "green", "cream"];
 export const AD_PLACES = ["both", "side", "bottom"];
-export const DEFAULT_ADS = [
-  { id: "ad-zeytin", brand: "Ayvalık Zeytinyağı", emoji: "🫒", title: "1 L sadece 169,00 ₺", text: "Bu hafta rafta, arabaya ekle ve kasaya uğrama.", tone: "purple", place: "both", active: true },
-  { id: "ad-peynir", brand: "Ezine Peyniri", emoji: "🧀", title: "2 al, 1 öde", text: "Şarküteri reyonunda kampanya.", tone: "cream", place: "both", active: true },
-  { id: "ad-kahvalti", brand: "Ahududu Market", emoji: "🥐", title: "Kahvaltılıkta haftanın fırsatları", text: "Yumurta, süt ve ekmekte indirim.", tone: "green", place: "both", active: true },
-  { id: "ad-meyve", brand: "Taze Bahçe", emoji: "🍎", title: "Mevsim meyveleri geldi", text: "Elma ve domates bugün taze.", tone: "cream", place: "both", active: true },
-  { id: "ad-uygulama", brand: "Ahududu", emoji: "📱", title: "Fişin e-postanda", text: "Kasada sıra bekleme, ödemeni arabadan yap.", tone: "purple", place: "both", active: true },
-];
 
 /** Reklam doğrulama — hata mesajı ya da null. */
 export function validateAd(a) {
@@ -191,6 +167,7 @@ export function validateProduct(p, products = [], { update = false } = {}) {
 export function cleanProduct(p) {
   const prod = { barcode: String(p.barcode), name: String(p.name).trim(), price: Number(p.price), weight: Number(p.weight) };
   if (p.emoji) prod.emoji = String(p.emoji).trim().slice(0, 8);
+  if (String(p.brand || "").trim()) prod.brand = String(p.brand).trim().slice(0, 40);
   if (AISLES.some((a) => a.no === Number(p.aisle))) prod.aisle = Number(p.aisle);
   return prod;
 }

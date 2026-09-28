@@ -2,10 +2,11 @@ import React, { useMemo, useState } from "react";
 import { salesSummary, validateProduct, cleanProduct, AISLES } from "@ahududu/domain";
 import { price, kg } from "../format.js";
 
-const EMPTY = { barcode: "", name: "", price: "", weight: "", emoji: "", aisle: "" };
+const EMPTY = { barcode: "", brand: "", name: "", price: "", weight: "", emoji: "", aisle: "" };
 
 export default function Products({ products, sales, onSave, onDelete }) {
   const [q, setQ] = useState("");
+  const [aisleFilter, setAisleFilter] = useState("");
   const [f, setF] = useState(EMPTY);
   const [editing, setEditing] = useState(null); // düzenlenen barkod
   const [err, setErr] = useState("");
@@ -13,11 +14,12 @@ export default function Products({ products, sales, onSave, onDelete }) {
 
   const list = products.filter((p) => {
     const s = q.trim().toLocaleLowerCase("tr-TR");
+    if (aisleFilter && String(p.aisle || "") !== aisleFilter) return false;
     return !s || p.name.toLocaleLowerCase("tr-TR").includes(s) || p.barcode.includes(s);
   });
 
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
-  const edit = (p) => { setEditing(p.barcode); setErr(""); setF({ barcode: p.barcode, name: p.name, price: String(p.price), weight: String(p.weight), emoji: p.emoji || "", aisle: p.aisle ? String(p.aisle) : "" }); };
+  const edit = (p) => { setEditing(p.barcode); setErr(""); setF({ barcode: p.barcode, brand: p.brand || "", name: p.name, price: String(p.price), weight: String(p.weight), emoji: p.emoji || "", aisle: p.aisle ? String(p.aisle) : "" }); };
   const reset = () => { setEditing(null); setErr(""); setF(EMPTY); };
 
   async function submit(e) {
@@ -33,8 +35,14 @@ export default function Products({ products, sales, onSave, onDelete }) {
     <div className="products">
       <section className="card">
         <div className="head">
-          <h3>Ürünler <small>{products.length} kayıt</small></h3>
-          <input type="search" placeholder="Ürün adı ya da barkod ara" aria-label="Ürün ara" value={q} onChange={(e) => setQ(e.target.value)} />
+          <h3>Ürünler <small>{list.length === products.length ? products.length + " kayıt" : `${list.length} / ${products.length}`}</small></h3>
+          <div className="filters-row">
+            <select aria-label="Reyon filtresi" value={aisleFilter} onChange={(e) => setAisleFilter(e.target.value)}>
+              <option value="">Tüm reyonlar</option>
+              {AISLES.map((a) => <option key={a.no} value={a.no}>{a.no} · {a.name}</option>)}
+            </select>
+            <input type="search" placeholder="Ürün adı ya da barkod ara" aria-label="Ürün ara" value={q} onChange={(e) => setQ(e.target.value)} />
+          </div>
         </div>
         <div className="scroll">
           <table className="tbl">
@@ -68,8 +76,11 @@ export default function Products({ products, sales, onSave, onDelete }) {
           <label>Barkod
             <input inputMode="numeric" required value={f.barcode} onChange={set("barcode")} disabled={!!editing} placeholder="8690001000098" />
           </label>
+          <label>Marka <em>isteğe bağlı</em>
+            <input value={f.brand} onChange={set("brand")} placeholder="Sütaş" />
+          </label>
           <label>Ürün adı
-            <input required value={f.name} onChange={set("name")} placeholder="Ayran (300ml)" />
+            <input required value={f.name} onChange={set("name")} placeholder="Sütaş Ayran 300 ml" />
           </label>
           <div className="row">
             <label>Fiyat (₺)
