@@ -27,9 +27,10 @@ ESP32 + HX711 + yük hücresi ──USB seri──▶ cart-agent (Pi) ──ws:/
 
 | Klasör | Ne |
 |---|---|
-| `packages/domain` | Ortak iş kuralları: sepet, beklenen ağırlık, tolerans (max 25 g, %3), doğrulama, ürün validasyonu. Testli. |
+| `packages/domain` | Ortak iş kuralları: sepet, beklenen ağırlık, tolerans (max 25 g, %3), doğrulama, ürün validasyonu, satış özeti ve saatlik/günlük kovalar (panel). `@ahududu/domain/logo`: logo geometrisi. Testli. |
 | `apps/kiosk` | React + Vite arayüz, **Mark I görünümü** (eski projenin videolarından birebir): mor üst bar "Ahududu · ARABA #0417", Karşılama → Alışveriş (solda raf + Güvenlik testi, sağda Sepetim + Ağırlık doğrulama) → Ödeme tamamlandı. Krem zemin, teal eylem düğmeleri, fiyat/ağırlık mono yazı (Sora + IBM Plex Mono). Logo ve palet claude.ai'daki "Ahududu Logo" kitinden (`components/Logo.jsx`: dokuz damla + yeşil taç); mor #6A2C9E. Geliştirici araçları üst bardaki "Sistem" sekmesinde. Barkod okuyucuyu klavye olayı olarak yakalar (USB-HID). cart-agent'a WebSocket ile bağlanır; bağlı değilse terazi simülasyonuna düşer. Sunucu kapalıysa çevrimdışı yerel katalogla çalışır. |
-| `apps/server` | Bağımlılıksız Node HTTP API: `GET/POST /api/products`, `DELETE /api/products/:barcode`, `POST /api/checkout` (ağırlık doğrulanmazsa 409), `GET /api/sales`. Veri: `apps/server/data/db.json`. |
+| `apps/admin` | Yönetim paneli (React + Vite, :5174). **Genel Bakış**: dönem filtresi (bugün / 7 / 30 gün), ciro, satış, ortalama sepet, satılan ürün, ağırlık reddi; saatlik/günlük ciro grafiği; en çok satanlar; son satışlar; ret listesi. **Ürün Girişi**: ekle / düzenle (barkod kilitli) / sil / ara. 10 sn'de bir yeniler. Muhasebe ve İK bilerek yok. Henüz giriş (şifre) yok — yalnızca market içi ağda çalıştır. |
+| `apps/server` | Bağımlılıksız Node HTTP API: `GET/POST /api/products`, `PUT/DELETE /api/products/:barcode`, `POST /api/checkout` (ağırlık doğrulanmazsa 409 + ret kaydı), `GET /api/sales`, `GET /api/rejects`. Veri: `apps/server/data/db.json`. |
 | `apps/cart-agent` | Seri porttan gram okur, kararlılık filtresi uygular, WebSocket ile yayınlar. `--fake` modu donanımsız test içindir. Kiosk'tan `{"type":"tare"}` gelince ESP32'ye `t` yollar. |
 | `firmware/esp32-scale` | Arduino sketch: HX711 → saniyede ~10 satır gram. Komutlar: `t` dara, `c1000` kalibrasyon, `f` faktör. Pinler: DT=GPIO4, SCK=GPIO5, VCC=3V3. |
 
@@ -39,6 +40,7 @@ npm install
 npm test                 # domain + server testleri
 npm run dev:server       # API :3000
 npm run dev              # kiosk :5173 (/api → :3000 proxy)
+npm run dev:admin        # yönetim paneli :5174
 npm run dev:agent:fake   # terazisiz cart-agent (terminale gram yaz)
 npm run dev:agent        # gerçek ESP32 (SERIAL_PORT=/dev/ttyUSB0 ile zorlanabilir)
 ```
@@ -50,7 +52,8 @@ npm run dev:agent        # gerçek ESP32 (SERIAL_PORT=/dev/ttyUSB0 ile zorlanabi
 - [x] Faz 4 terazi → Pi → kiosk köprüsü (cart-agent + useScale) — yeniden kurulumda eklendi, **gerçek donanımda henüz test edilmedi**
 - [ ] Raspberry Pi 4 kurulum + Chromium kiosk autostart (bkz. docs/raspberry-pi.md)
 - [ ] Mekanik montaj (Donanım Yerleşimi, yüzer sepet + sabit çerçeve)
-- [ ] Yönetim paneli (eski projede vardı: Genel Bakış, Ürün Girişi, Muhasebe, İK) — yeniden yazılacak
+- [x] Yönetim paneli: Genel Bakış + Ürün Girişi (`apps/admin`). Muhasebe ve İK istenmedi.
+- [ ] Panel için giriş / yetki (şu an herkes ürün silebilir)
 - [ ] Market içi konum (F1: BLE beacon / manuel reyon; F2: UWB), reklam, filo takibi
 - [ ] Kiloyla satış — yasal metroloji tip onayı gelene kadar kapalı
 - [ ] Gerçek ödeme (banka/PCI sertifikası uzun sürer, erken başlat); şu an sandbox

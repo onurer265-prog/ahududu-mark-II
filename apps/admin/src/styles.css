@@ -1,0 +1,144 @@
+/* Ahududu yönetim paneli — kiosk ile aynı Mark I sistemi (logo kiti paleti, Sora + IBM Plex Mono, mor #6A2C9E) */
+:root{
+  --paper:#FAF8F3; --card:#FFFFFF; --ink:#22201B; --ink2:#6C6557; --ink3:#948C7B; --line:#DDD6C7; --line2:#ECE7DC;
+  --brand:#6A2C9E; --brand-soft:#F1EAF8;
+  --go:#3F7D5C; --go-hover:#1F4D3D;
+  --warn:#B7791F; --warn-soft:#FDF3E1; --bad:#E0393E; --bad-soft:#FBE9E9;
+  --font:"Sora",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45}
+button,input{font:inherit;color:inherit}
+code{font-family:var(--mono);font-size:.85em}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.muted{color:var(--ink2);font-size:.86rem;margin:0}
+
+/* Üst bar */
+.bar{background:var(--brand);color:#fff;display:flex;align-items:center;gap:20px;padding:0 20px;min-height:56px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:9px}
+.brand b{font-size:1.2rem;font-weight:800;letter-spacing:-.02em}
+.brand small{font-size:.64rem;font-weight:700;letter-spacing:.1em;opacity:.8}
+nav{display:flex;gap:2px;align-self:stretch}
+nav button{background:none;border:0;color:rgba(255,255,255,.75);font-weight:600;font-size:.88rem;padding:0 14px;cursor:pointer;border-bottom:3px solid transparent;border-top:3px solid transparent}
+nav button:hover{color:#fff}
+nav button[aria-selected="true"]{color:#fff;border-bottom-color:#fff}
+.dot{margin-left:auto;font-size:.74rem;font-weight:500;opacity:.85;display:inline-flex;align-items:center;gap:6px}
+.dot::before{content:"";width:7px;height:7px;border-radius:50%;background:#FFB4B4}
+.dot.on::before{background:#7CF0B6}
+.alert{background:var(--bad);color:#fff;font-weight:600;font-size:.88rem;padding:10px 20px}
+.alert code{background:rgba(255,255,255,.18);padding:1px 6px;border-radius:4px}
+main{max-width:1240px;margin:0 auto;padding:22px 20px 48px}
+
+/* Genel düğmeler */
+.btn{border:0;border-radius:6px;padding:10px 18px;font-weight:700;cursor:pointer;background:var(--go);color:#fff}
+.btn:hover{background:var(--go-hover)}
+.btn.sm{padding:5px 10px;font-size:.78rem;font-weight:600}
+.btn.plain{background:#fff;color:var(--ink2);border:1px solid var(--line)}
+.btn.plain:hover{background:var(--paper);color:var(--ink)}
+.btn.danger{background:#fff;color:var(--bad);border:1px solid var(--line)}
+.btn.danger:hover{background:var(--bad-soft);border-color:#EDB9B9}
+.link{background:none;border:0;color:var(--brand);font-weight:600;font-size:.78rem;cursor:pointer;padding:4px 0}
+.link:hover{text-decoration:underline}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px;min-width:0}
+.card h3{margin:0 0 12px;font-size:.95rem;font-weight:700}
+.card h3 small{font-weight:500;color:var(--ink3);font-size:.76rem;margin-left:6px}
+.two{display:grid;gap:16px;margin-top:16px}
+@media (min-width:980px){.two{grid-template-columns:1.35fr 1fr}}
+
+/* Dönem filtresi — grafiklerin üstünde tek satır */
+.filters{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:8px;padding:3px;gap:2px}
+.filters button{border:0;background:none;padding:6px 14px;border-radius:6px;font-size:.84rem;font-weight:600;color:var(--ink2);cursor:pointer}
+.filters button.on{background:var(--brand);color:#fff}
+
+/* Göstergeler */
+.tiles{display:grid;gap:12px;margin-top:16px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.tile span{display:block;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.tile strong{display:block;margin-top:6px;font-family:var(--mono);font-weight:500;font-size:1.5rem;letter-spacing:-.01em}
+.tile.hero{border-color:var(--brand);box-shadow:inset 3px 0 0 var(--brand)}
+.tile.hero strong{font-size:1.75rem}
+.tile.warn{background:var(--warn-soft);border-color:#EBCB94}
+.tile.warn strong{color:#7A4E0E}
+.tile.warn i{font-style:normal;font-size:1.1rem}
+
+/* Çubuk grafik */
+.chart{margin:0}
+.chart figcaption{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.chart h3{margin:0}
+.chart figcaption p{margin:2px 0 0;font-size:.74rem;color:var(--ink3)}
+.plot{display:grid;grid-template-columns:auto 1fr;gap:8px;height:240px}
+.yaxis{display:flex;flex-direction:column;justify-content:space-between;font-family:var(--mono);font-size:.68rem;color:var(--ink3);text-align:right;padding-bottom:22px;margin-top:-6px}
+.area{position:relative;display:grid;grid-template-rows:1fr 22px;min-width:0}
+.area .grid{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line2);pointer-events:none}
+.area .grid:last-of-type{border-top-color:var(--line)}
+.bars{position:relative;display:flex;align-items:stretch;gap:2px;height:100%}
+.col{position:relative;flex:1;display:flex;align-items:flex-end;cursor:default;outline-offset:0;min-width:0}
+.col b{display:block;width:100%;max-width:44px;margin:0 auto;background:var(--brand);border-radius:4px 4px 0 0;min-height:2px;transition:opacity .15s}
+.bars:hover .col b{opacity:.45}
+.bars .col.on b{opacity:1}
+.col em{position:absolute;left:50%;transform:translate(-50%,-4px);font-style:normal;font-family:var(--mono);font-size:.68rem;color:var(--ink2);white-space:nowrap;pointer-events:none}
+.tip{position:absolute;left:50%;transform:translate(-50%,-8px);background:var(--ink);color:#fff;border-radius:6px;padding:7px 10px;font-size:.74rem;white-space:nowrap;z-index:3;pointer-events:none;display:flex;flex-direction:column;gap:1px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.tip strong{font-weight:700}
+.tip span{font-family:var(--mono);opacity:.9}
+.bars .col:first-child .tip{left:0;transform:translate(0,-8px)}
+.bars .col:last-child .tip{left:auto;right:0;transform:translate(0,-8px)}
+.xaxis{display:flex;gap:2px;font-family:var(--mono);font-size:.66rem;color:var(--ink3);padding-top:6px}
+.xaxis span{flex:1;text-align:center;min-width:0;overflow:hidden}
+
+/* En çok satanlar */
+.top{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.top li{display:grid;grid-template-columns:24px minmax(0,1fr) 28% 58px 84px;gap:10px;align-items:center;font-size:.86rem}
+.top .em{font-size:1.05rem}
+.top .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top .meter{height:8px;background:var(--line2);border-radius:4px;overflow:hidden}
+.top .meter i{display:block;height:100%;background:var(--brand);border-radius:0 4px 4px 0}
+.top code{font-size:.76rem;text-align:right;white-space:nowrap}
+.dim{color:var(--ink2)}
+
+/* Tablolar */
+.scroll{overflow-x:auto;max-width:100%}
+.tbl{border-collapse:collapse;width:100%;font-size:.84rem}
+.tbl th{text-align:left;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);padding:0 10px 8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .r{text-align:right;font-family:var(--mono);font-size:.8rem}
+.tbl th.r{font-family:var(--font);font-size:.7rem}
+.tbl.compact td{padding:5px 10px}
+.tbl .em{font-size:1.15rem;width:36px}
+.tbl .acts{text-align:right;display:flex;gap:6px;justify-content:flex-end}
+.tbl tr.sel td{background:var(--brand-soft)}
+.tbl code{color:var(--ink2)}
+
+/* Ret listesi */
+.rejects{list-style:none;margin:0;padding:0}
+.rejects li{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line2);font-size:.84rem}
+.rejects li:last-child{border-bottom:0}
+.rejects code{font-size:.76rem}
+.tag{font-size:.74rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--warn-soft);color:#7A4E0E}
+.tag.bad{background:var(--bad-soft);color:#A3232A}
+.tag i{font-style:normal}
+
+/* Ürün girişi */
+.products{display:grid;gap:16px;align-items:start}
+@media (min-width:1080px){.products{grid-template-columns:1fr 360px}}
+.products .head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.products .head h3{margin:0}
+input[type=search],.entry input{background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px;width:100%;min-width:0}
+input[type=search]{max-width:280px}
+input:disabled{background:var(--paper);color:var(--ink2)}
+.entry{position:sticky;top:16px}
+.entry .muted{margin-bottom:14px}
+.entry form{display:grid;gap:12px}
+.entry label{display:grid;gap:4px;font-size:.76rem;font-weight:600;color:var(--ink2)}
+.entry .row{display:flex;gap:10px}
+.entry .row>label{flex:1}
+.entry .row>label.narrow{flex:0 0 70px}
+.entry .row.end{justify-content:flex-end}
+.err{margin:0;color:var(--bad);font-size:.82rem;font-weight:600}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:.86rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;max-width:calc(100% - 32px)}
+#toast.on{opacity:1}
+@media (max-width:640px){.bar{padding:8px 16px;gap:8px}.dot{margin-left:0;width:100%}main{padding:16px}.top li{grid-template-columns:24px minmax(0,1fr) 58px 84px}.top .meter{display:none}}
+@media (prefers-reduced-motion:reduce){.col b{transition:none}}

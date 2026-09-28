@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   DEFAULT_PRODUCTS as P, addToCart, removeFromCart, expectedWeight, cartTotal,
-  verifyWeight, canCheckout, validateProduct,
+  verifyWeight, canCheckout, validateProduct, cleanProduct, salesSummary, bucketSales,
 } from "../src/index.js";
 
 const SUT = "8690001000012", CIK = "8690001000029"; // Süt 1030 g / 34,50 ₺ · Ekmek 350 g / 12 ₺
@@ -44,4 +44,41 @@ test("ürün doğrulama", () => {
   assert.equal(validateProduct({ barcode: "123", name: "x", price: 1, weight: 1 }), "Barkod 6–14 haneli sayı olmalı");
   assert.equal(validateProduct({ barcode: SUT, name: "x", price: 1, weight: 1 }, P), "Bu barkod zaten kayıtlı");
   assert.equal(validateProduct({ barcode: "8690009999999", name: "Ekmek", price: 15, weight: 250 }, P), null);
+  // düzenleme: mevcut barkod geçerli, olmayan barkod hata
+  assert.equal(validateProduct({ barcode: SUT, name: "Süt", price: 36, weight: 1030 }, P, { update: true }), null);
+  assert.equal(validateProduct({ barcode: "8690009999999", name: "x", price: 1, weight: 1 }, P, { update: true }), "Ürün bulunamadı");
+  assert.deepEqual(cleanProduct({ barcode: 123456, name: " Ayran ", price: "9.5", weight: "210", emoji: "🥛", extra: 1 }),
+    { barcode: "123456", name: "Ayran", price: 9.5, weight: 210, emoji: "🥛" });
+});
+
+const sale = (time, items) => ({ time, total: items.reduce((a, i) => a + i.qty * i.price, 0), items });
+const SALES = [
+  sale("2026-09-28T09:15:00", [{ barcode: SUT, name: "Süt", qty: 2, price: 34.5 }]),
+  sale("2026-09-28T09:40:00", [{ barcode: CIK, name: "Ekmek", qty: 1, price: 12 }, { barcode: SUT, name: "Süt", qty: 1, price: 34.5 }]),
+  sale("2026-09-26T18:05:00", [{ barcode: CIK, name: "Ekmek", qty: 3, price: 12 }]),
+];
+
+test("satış özeti", () => {
+  const all = salesSummary(SALES);
+  assert.equal(all.count, 3);
+  assert.equal(all.revenue, 151.5); // 69 + 46,5 + 36
+  assert.equal(all.items, 7);
+  assert.equal(all.avg, 50.5);
+  assert.deepEqual(all.top.map((t) => [t.name, t.qty, t.revenue]), [["Ekmek", 4, 48], ["Süt", 3, 103.5]]);
+  const today = salesSummary(SALES, new Date("2026-09-28T00:00:00"));
+  assert.equal(today.count, 2);
+  assert.equal(today.revenue, 115.5);
+  assert.equal(salesSummary([]).avg, 0);
+});
+
+test("saatlik ve günlük kovalar", () => {
+  const h = bucketSales(SALES.slice(0, 2), "hour");
+  assert.equal(h.length, 24);
+  assert.equal(h[9].total, 115.5);
+  assert.equal(h[9].count, 2);
+  const d = bucketSales(SALES, "day", new Date("2026-09-28T20:00:00"), 7);
+  assert.equal(d.length, 7);
+  assert.equal(d[6].total, 115.5); // bugün
+  assert.equal(d[4].total, 36);    // 26 Eylül
+  assert.equal(d[0].total, 0);
 });

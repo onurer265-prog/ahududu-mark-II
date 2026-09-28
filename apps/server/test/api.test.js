@@ -29,4 +29,19 @@ test("ödeme ağırlık doğrulamasına bağlı", () => withServer(async (b) => 
   assert.equal(sale.total, 34.5);
   const sales = await (await fetch(b + "/sales")).json();
   assert.equal(sales.length, 1);
+  const rejects = await (await fetch(b + "/rejects")).json();
+  assert.equal(rejects.length, 1);
+  assert.equal(rejects[0].kind, "wait");
+  assert.equal(rejects[0].expected, 1030);
+}));
+
+test("ürün düzenleme", () => withServer(async (b) => {
+  const put = (bc, body) => fetch(b + "/products/" + bc, { method: "PUT", body: JSON.stringify(body) });
+  const ok = await put("8690001000012", { barcode: "999999", name: "Süt (1L)", price: 36.9, weight: 1030, emoji: "🥛" });
+  assert.equal(ok.status, 200);
+  const p = await ok.json();
+  assert.equal(p.barcode, "8690001000012"); // barkod değişmez
+  assert.equal(p.price, 36.9);
+  assert.equal((await put("8690001000012", { name: "", price: 1, weight: 1 })).status, 400);
+  assert.equal((await put("8690009999999", { name: "x", price: 1, weight: 1 })).status, 404);
 }));

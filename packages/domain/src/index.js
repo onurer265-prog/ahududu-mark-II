@@ -64,13 +64,57 @@ export function canCheckout(cart, products, measured) {
   return cart.length > 0 && verifyWeight(cart, products, measured).kind === "ok";
 }
 
-/** Ürün kaydı doğrulama — hata mesajı ya da null. */
-export function validateProduct(p, products = []) {
+/** Ürün kaydı doğrulama — hata mesajı ya da null. update: mevcut ürünü düzenlerken barkod çakışmasını sayma. */
+export function validateProduct(p, products = [], { update = false } = {}) {
   if (!p || typeof p !== "object") return "Geçersiz ürün";
   if (!/^\d{6,14}$/.test(String(p.barcode || ""))) return "Barkod 6–14 haneli sayı olmalı";
   if (!String(p.name || "").trim()) return "Ürün adı boş olamaz";
   if (!(Number(p.price) >= 0)) return "Fiyat 0 veya daha büyük olmalı";
   if (!(Number(p.weight) > 0)) return "Ağırlık 0'dan büyük olmalı";
-  if (findProduct(products, String(p.barcode))) return "Bu barkod zaten kayıtlı";
+  const exists = findProduct(products, String(p.barcode));
+  if (!update && exists) return "Bu barkod zaten kayıtlı";
+  if (update && !exists) return "Ürün bulunamadı";
   return null;
+}
+
+/** Sunucuya kaydedilecek ürün alanları (barcode, name, price, weight, isteğe bağlı emoji). */
+export function cleanProduct(p) {
+  const prod = { barcode: String(p.barcode), name: String(p.name).trim(), price: Number(p.price), weight: Number(p.weight) };
+  if (p.emoji) prod.emoji = String(p.emoji).trim().slice(0, 8);
+  return prod;
+}
+
+/**
+ * Yönetim paneli özeti. sales: [{ time, total, items:[{barcode,name,qty,price}] }]
+ * since: bu andan (dahil) sonraki satışlar; verilmezse hepsi.
+ */
+export function salesSummary(sales, since = null) {
+  const list = since ? sales.filter((s) => new Date(s.time) >= since) : sales;
+  const revenue = Math.round(list.reduce((a, s) => a + s.total, 0) * 100) / 100;
+  const items = list.reduce((a, s) => a + s.items.reduce((b, i) => b + i.qty, 0), 0);
+  const byProduct = new Map();
+  for (const s of list) for (const i of s.items) {
+    const r = byProduct.get(i.barcode) || { barcode: i.barcode, name: i.name, qty: 0, revenue: 0 };
+    r.qty += i.qty; r.revenue = Math.round((r.revenue + i.qty * i.price) * 100) / 100;
+    byProduct.set(i.barcode, r);
+  }
+  const top = [...byProduct.values()].sort((a, b) => b.qty - a.qty || b.revenue - a.revenue);
+  return { count: list.length, revenue, items, avg: list.length ? Math.round((revenue / list.length) * 100) / 100 : 0, top, sales: list };
+}
+
+/** Satışları yerel saate göre kovalara böler: unit "hour" (0–23) ya da "day" (son n gün, eskiden yeniye). */
+export function bucketSales(sales, unit, now = new Date(), days = 7) {
+  if (unit === "hour") {
+    const b = Array.from({ length: 24 }, (_, h) => ({ key: h, total: 0, count: 0 }));
+    for (const s of sales) { const h = new Date(s.time).getHours(); b[h].total += s.total; b[h].count++; }
+    return b.map((x) => ({ ...x, total: Math.round(x.total * 100) / 100 }));
+  }
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1));
+  const b = Array.from({ length: days }, (_, i) => ({ key: new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), total: 0, count: 0 }));
+  for (const s of sales) {
+    const t = new Date(s.time);
+    const i = Math.floor((new Date(t.getFullYear(), t.getMonth(), t.getDate()) - start) / 864e5);
+    if (i >= 0 && i < days) { b[i].total += s.total; b[i].count++; }
+  }
+  return b.map((x) => ({ ...x, total: Math.round(x.total * 100) / 100 }));
 }

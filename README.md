@@ -9,7 +9,8 @@ Node.js 20+ gerekir (https://nodejs.org → LTS).
 npm install
 npm run dev:server        # 1. terminal — API
 npm run dev               # 2. terminal — kiosk → http://localhost:5173
-npm run dev:agent:fake    # 3. terminal (isteğe bağlı) — sahte terazi, gram yaz: 1030, +85, 0
+npm run dev:admin         # 3. terminal — yönetim paneli → http://localhost:5174
+npm run dev:agent:fake    # 4. terminal (isteğe bağlı) — sahte terazi, gram yaz: 1030, +85, 0
 ```
 
 Terazi bağlı değilken kiosk, sensör panelindeki **Bırak / Çıkar** düğmeleriyle ağırlığı simüle eder.
