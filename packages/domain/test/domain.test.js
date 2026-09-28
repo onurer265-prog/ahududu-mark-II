@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   DEFAULT_PRODUCTS as P, addToCart, removeFromCart, expectedWeight, cartTotal,
   verifyWeight, canCheckout, validateProduct, cleanProduct, salesSummary, bucketSales,
+  DEFAULT_ADS, validateAd, cleanAd, adsFor,
 } from "../src/index.js";
 
 const SUT = "8690001000012", CIK = "8690001000029"; // Süt 1030 g / 34,50 ₺ · Ekmek 350 g / 12 ₺
@@ -69,6 +70,22 @@ test("satış özeti", () => {
   assert.equal(today.count, 2);
   assert.equal(today.revenue, 115.5);
   assert.equal(salesSummary([]).avg, 0);
+});
+
+test("reklam doğrulama ve alanlar", () => {
+  const ok = { id: "x", brand: "Marka", title: "Başlık", text: "", tone: "green", place: "side" };
+  assert.equal(validateAd(ok), null);
+  assert.equal(validateAd({ ...ok, brand: " " }), "Marka boş olamaz");
+  assert.equal(validateAd({ ...ok, title: "x".repeat(61) }), "Başlık en fazla 60 karakter");
+  assert.equal(validateAd({ ...ok, tone: "red" }), "Geçersiz renk");
+  assert.equal(validateAd({ ...ok, place: "top" }), "Geçersiz yer");
+  assert.equal(cleanAd({ ...ok, brand: " M ", extra: 1 }).brand, "M");
+  assert.equal(cleanAd(ok).active, true);
+  const ads = [{ ...ok, id: "a", place: "both", active: true }, { ...ok, id: "b", place: "side", active: true },
+    { ...ok, id: "c", place: "bottom", active: true }, { ...ok, id: "d", place: "both", active: false }];
+  assert.deepEqual(adsFor(ads, "side").map((a) => a.id), ["a", "b"]);
+  assert.deepEqual(adsFor(ads, "bottom").map((a) => a.id), ["a", "c"]);
+  for (const a of DEFAULT_ADS) assert.equal(validateAd(a), null);
 });
 
 test("saatlik ve günlük kovalar", () => {

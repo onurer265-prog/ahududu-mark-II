@@ -15,4 +15,8 @@ export const api = {
   deleteProduct: (bc) => req("/products/" + encodeURIComponent(bc), { method: "DELETE" }),
   sales: () => req("/sales"),
   rejects: () => req("/rejects"),
+  ads: () => req("/ads"),
+  addAd: (a) => req("/ads", { method: "POST", body: JSON.stringify(a) }),
+  updateAd: (a) => req("/ads/" + encodeURIComponent(a.id), { method: "PUT", body: JSON.stringify(a) }),
+  deleteAd: (id) => req("/ads/" + encodeURIComponent(id), { method: "DELETE" }),
 };

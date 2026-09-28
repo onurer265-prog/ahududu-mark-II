@@ -12,6 +12,44 @@ export const DEFAULT_PRODUCTS = [
   { barcode: "8690001000081", name: "Peynir (500g)", price: 145, weight: 505, emoji: "🧀" },
 ];
 
+/**
+ * Kiosk reklamları. tone: zemin ("purple" | "green" | "cream"), place: "side" (sağ üst) | "bottom" (alt bant) | "both".
+ * Yönetim panelinden düzenlenir; sunucu kapalıyken kiosk bunları gösterir.
+ */
+export const AD_TONES = ["purple", "green", "cream"];
+export const AD_PLACES = ["both", "side", "bottom"];
+export const DEFAULT_ADS = [
+  { id: "ad-zeytin", brand: "Ayvalık Zeytinyağı", emoji: "🫒", title: "1 L sadece 169,00 ₺", text: "Bu hafta rafta, arabaya ekle ve kasaya uğrama.", tone: "purple", place: "both", active: true },
+  { id: "ad-peynir", brand: "Ezine Peyniri", emoji: "🧀", title: "2 al, 1 öde", text: "Şarküteri reyonunda kampanya.", tone: "cream", place: "both", active: true },
+  { id: "ad-kahvalti", brand: "Ahududu Market", emoji: "🥐", title: "Kahvaltılıkta haftanın fırsatları", text: "Yumurta, süt ve ekmekte indirim.", tone: "green", place: "both", active: true },
+  { id: "ad-meyve", brand: "Taze Bahçe", emoji: "🍎", title: "Mevsim meyveleri geldi", text: "Elma ve domates bugün taze.", tone: "cream", place: "both", active: true },
+  { id: "ad-uygulama", brand: "Ahududu", emoji: "📱", title: "Fişin e-postanda", text: "Kasada sıra bekleme, ödemeni arabadan yap.", tone: "purple", place: "both", active: true },
+];
+
+/** Reklam doğrulama — hata mesajı ya da null. */
+export function validateAd(a) {
+  if (!a || typeof a !== "object") return "Geçersiz reklam";
+  if (!String(a.brand || "").trim()) return "Marka boş olamaz";
+  if (!String(a.title || "").trim()) return "Başlık boş olamaz";
+  if (String(a.title).trim().length > 60) return "Başlık en fazla 60 karakter";
+  if (String(a.text || "").trim().length > 120) return "Metin en fazla 120 karakter";
+  if (!AD_TONES.includes(a.tone)) return "Geçersiz renk";
+  if (!AD_PLACES.includes(a.place)) return "Geçersiz yer";
+  return null;
+}
+
+export function cleanAd(a) {
+  return {
+    id: String(a.id), brand: String(a.brand).trim(), title: String(a.title).trim(), text: String(a.text || "").trim(),
+    emoji: String(a.emoji || "").trim().slice(0, 8), tone: a.tone, place: a.place, active: a.active !== false,
+  };
+}
+
+/** Bir reklam alanında (side | bottom) gösterilecek yayındaki reklamlar. */
+export function adsFor(ads, slot) {
+  return ads.filter((a) => a.active && (a.place === "both" || a.place === slot));
+}
+
 /** Ağırlık toleransı: en az 25 g ya da beklenenin %3'ü. */
 export const MIN_TOLERANCE_G = 25;
 export const TOLERANCE_RATIO = 0.03;

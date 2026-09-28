@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  DEFAULT_PRODUCTS, addToCart, removeFromCart, cartTotal, expectedWeight,
-  verifyWeight, canCheckout, findProduct, validateProduct,
+  DEFAULT_PRODUCTS, DEFAULT_ADS, addToCart, removeFromCart, cartTotal, expectedWeight,
+  verifyWeight, canCheckout, findProduct, validateProduct, adsFor,
 } from "@ahududu/domain";
 import { api } from "./lib/api.js";
 import { useScale } from "./lib/useScale.js";
@@ -27,6 +27,7 @@ export default function App() {
   const [products, setProducts] = useState(DEFAULT_PRODUCTS);
   const [cart, setCart] = useState([]);
   const [sales, setSales] = useState([]);
+  const [ads, setAds] = useState(DEFAULT_ADS); // sunucu kapalıyken varsayılan reklamlar
   const [log, setLog] = useState([]);
   const [pay, setPay] = useState(null);
   const [toast, setToast] = useState("");
@@ -38,11 +39,12 @@ export default function App() {
     setLog((l) => [{ t: new Date().toLocaleTimeString("tr-TR"), m, path, code, note }, ...l].slice(0, 60));
   const say = useCallback((msg) => { setToast(msg); clearTimeout(say.t); say.t = setTimeout(() => setToast(""), 2600); }, []);
 
-  // Sunucudan katalog + satışlar
+  // Sunucudan katalog + satışlar + reklamlar (panelde yapılan değişiklik en geç 15 sn'de arabaya yansır)
   const refresh = useCallback(async () => {
     try {
-      const [p, s] = await Promise.all([api.products(), api.sales()]);
-      setProducts(p); setSales(s); setOnline(true);
+      // reklamlar alınamazsa (ör. eski sunucu) alışveriş yine çevrimiçi çalışır, eldeki reklamlar kalır
+      const [p, s, a] = await Promise.all([api.products(), api.sales(), api.ads().catch(() => null)]);
+      setProducts(p); setSales(s); if (a) setAds(a); setOnline(true);
     } catch { setOnline(false); }
   }, []);
   useEffect(() => { refresh(); const id = setInterval(refresh, 15000); return () => clearInterval(id); }, [refresh]);
@@ -169,10 +171,10 @@ export default function App() {
         <div className="stage">
           <div className="stage-main">
             {body}
-            <AdSlot variant="bottom" offset={3} />
+            <AdSlot variant="bottom" ads={adsFor(ads, "bottom")} offset={Math.ceil(adsFor(ads, "bottom").length / 2)} />
           </div>
           <div className="stage-side">
-            <AdSlot variant="side" offset={0} />
+            <AdSlot variant="side" ads={adsFor(ads, "side")} offset={0} />
             {shopping && (
               <CartScreen cart={cart} products={products} verify={verify} total={cartTotal(cart, products)}
                 expected={expectedWeight(cart, products)} measured={measured} stable={scale.stable}

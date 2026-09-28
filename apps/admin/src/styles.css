@@ -138,6 +138,46 @@ input:disabled{background:var(--paper);color:var(--ink2)}
 .entry .row.end{justify-content:flex-end}
 .err{margin:0;color:var(--bad);font-size:.82rem;font-weight:600}
 
+/* Reklamlar — önizleme kiosk'taki kartla aynı (apps/kiosk/src/styles.css "Reklam alanları") */
+.ad{position:relative;border-radius:8px;overflow:hidden;color:#fff;text-align:left}
+.tone-purple{background:var(--brand);color:#fff}
+.tone-green{background:var(--go);color:#fff}
+.tone-cream{background:#F1EAD9;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.ad small{display:block;font-size:.6rem;font-weight:700;letter-spacing:.12em;opacity:.75}
+.ad b{display:block;font-weight:700;line-height:1.25}
+.ad p{margin:4px 0 0;font-size:.8rem;opacity:.85;line-height:1.35}
+.ad-side{padding:16px 18px;display:grid;gap:10px;max-width:320px}
+.ad-side .ad-em{font-size:2.6rem;line-height:1}
+.ad-side b{font-size:1.1rem}
+.ad-bottom{padding:12px 16px;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"em sm" "em tx";column-gap:14px;align-items:center}
+.ad-bottom small{grid-area:sm}
+.ad-bottom .ad-em{grid-area:em;font-size:1.8rem}
+.ad-bottom .ad-tx{grid-area:tx;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px}
+.ad-bottom p{margin:0}
+.adlist{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.adlist li{display:grid;gap:8px;padding:10px;border:1px solid var(--line2);border-radius:10px}
+.adlist li.sel{border-color:var(--brand);background:var(--brand-soft)}
+.adlist li.off .ad{opacity:.4;filter:grayscale(.6)}
+.adlist .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.adlist .place{font-size:.74rem;color:var(--ink2);margin-right:auto}
+.switch{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--ink2)}
+.switch input{appearance:none;width:34px;height:20px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;margin:0;transition:background .15s}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switch input:checked{background:var(--go)}
+.switch input:checked::after{transform:translateX(14px)}
+.switch input:checked+span{color:var(--go)}
+.entry label em{font-style:normal;font-weight:400;color:var(--ink3);float:right}
+.entry select{background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 10px;font:inherit;color:var(--ink)}
+.entry .check{display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--ink)}
+.entry .check input{width:auto}
+.seg{border:0;margin:0;padding:0;display:flex;gap:6px;flex-wrap:wrap}
+.seg legend{font-size:.76rem;font-weight:600;color:var(--ink2);margin-bottom:4px;padding:0}
+.seg label{display:inline-flex;align-items:center;padding:6px 12px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;opacity:.55}
+.seg label.on{opacity:1;outline:2px solid var(--ink);outline-offset:2px}
+.seg input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.seg label:focus-within{outline:3px solid var(--brand);outline-offset:2px}
+.preview{display:grid;gap:8px;padding:12px;background:var(--paper);border:1px dashed var(--line);border-radius:8px}
+
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:.86rem;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30;max-width:calc(100% - 32px)}
 #toast.on{opacity:1}
 @media (max-width:640px){.bar{padding:8px 16px;gap:8px}.dot{margin-left:0;width:100%}main{padding:16px}.top li{grid-template-columns:24px minmax(0,1fr) 58px 84px}.top .meter{display:none}}

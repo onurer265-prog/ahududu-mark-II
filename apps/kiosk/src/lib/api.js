@@ -15,4 +15,5 @@ export const api = {
   deleteProduct: (bc) => req("/products/" + encodeURIComponent(bc), { method: "DELETE" }),
   checkout: (payload) => req("/checkout", { method: "POST", body: JSON.stringify(payload) }),
   sales: () => req("/sales"),
+  ads: () => req("/ads"),
 };

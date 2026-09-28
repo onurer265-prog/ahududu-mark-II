@@ -35,6 +35,26 @@ test("ödeme ağırlık doğrulamasına bağlı", () => withServer(async (b) => 
   assert.equal(rejects[0].expected, 1030);
 }));
 
+test("reklam yönetimi", () => withServer(async (b) => {
+  const json = (r) => r.json();
+  const list = await json(await fetch(b + "/ads"));
+  assert.equal(list.length, 5);
+  const bad = await fetch(b + "/ads", { method: "POST", body: JSON.stringify({ brand: "X", title: "", tone: "green", place: "side" }) });
+  assert.equal(bad.status, 400);
+  const created = await fetch(b + "/ads", { method: "POST", body: JSON.stringify({ brand: "Jelibon", title: "%20 indirim", text: "3. koridor", emoji: "🍬", tone: "green", place: "bottom" }) });
+  assert.equal(created.status, 201);
+  const ad = await json(created);
+  assert.match(ad.id, /^ad-/);
+  assert.equal(ad.active, true);
+  const off = await json(await fetch(b + "/ads/" + ad.id, { method: "PUT", body: JSON.stringify({ active: false, id: "hack" }) }));
+  assert.equal(off.active, false);
+  assert.equal(off.id, ad.id);          // id değişmez
+  assert.equal(off.title, "%20 indirim"); // gönderilmeyen alanlar korunur
+  assert.equal((await fetch(b + "/ads/" + ad.id, { method: "DELETE" })).status, 200);
+  assert.equal((await fetch(b + "/ads/" + ad.id, { method: "DELETE" })).status, 404);
+  assert.equal((await json(await fetch(b + "/ads"))).length, 5);
+}));
+
 test("ürün düzenleme", () => withServer(async (b) => {
   const put = (bc, body) => fetch(b + "/products/" + bc, { method: "PUT", body: JSON.stringify(body) });
   const ok = await put("8690001000012", { barcode: "999999", name: "Süt (1L)", price: 36.9, weight: 1030, emoji: "🥛" });

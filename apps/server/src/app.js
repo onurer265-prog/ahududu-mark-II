@@ -1,6 +1,6 @@
 // Ahududu API — ürünler, ödeme, satışlar. Bağımlılıksız (node:http).
 import http from "node:http";
-import { cartTotal, canCheckout, cleanProduct, findProduct, validateProduct, verifyWeight } from "@ahududu/domain";
+import { cartTotal, canCheckout, cleanAd, cleanProduct, findProduct, validateAd, validateProduct, verifyWeight } from "@ahududu/domain";
 
 const MAX_REJECTS = 500;
 
@@ -82,6 +82,35 @@ export function createApp(store) {
 
       if (parts[1] === "sales" && req.method === "GET") return send(res, 200, db.sales);
       if (parts[1] === "rejects" && req.method === "GET") return send(res, 200, db.rejects);
+
+      // Reklamlar: kiosk GET ile hepsini alır ve yayında olanları gösterir; panel ekler / düzenler / siler.
+      if (parts[1] === "ads" && parts.length === 2) {
+        if (req.method === "GET") return send(res, 200, db.ads);
+        if (req.method === "POST") {
+          const a = { ...(await readJson(req)), id: "ad-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5) };
+          const err = validateAd(a);
+          if (err) return send(res, 400, { error: err });
+          const ad = cleanAd(a);
+          db.ads.push(ad); store.save();
+          return send(res, 201, ad);
+        }
+      }
+      if (parts[1] === "ads" && parts.length === 3) {
+        const cur = db.ads.find((a) => a.id === parts[2]);
+        if (!cur) return send(res, 404, { error: "Reklam yok" });
+        if (req.method === "PUT") {
+          const a = { ...cur, ...(await readJson(req)), id: cur.id };
+          const err = validateAd(a);
+          if (err) return send(res, 400, { error: err });
+          const ad = cleanAd(a);
+          db.ads = db.ads.map((x) => (x.id === ad.id ? ad : x)); store.save();
+          return send(res, 200, ad);
+        }
+        if (req.method === "DELETE") {
+          db.ads = db.ads.filter((x) => x.id !== cur.id); store.save();
+          return send(res, 200, { ok: true });
+        }
+      }
 
       return send(res, 404, { error: "Bulunamadı" });
     } catch (e) {
