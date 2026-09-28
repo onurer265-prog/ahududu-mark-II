@@ -46,7 +46,7 @@ code{font-family:var(--mono);font-size:.82em}
 .btn.danger{background:#fff;color:var(--bad);border:1px solid var(--line)}
 
 /* Karşılama */
-.welcome{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:48px 16px 20px;max-width:560px;width:100%;margin:0 auto}
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:28px 0 0;max-width:560px;width:100%;margin:0 auto}
 .eyebrow{margin-top:14px;font-size:.7rem;font-weight:700;letter-spacing:.12em;color:var(--ink2)}
 .welcome h1{margin:6px 0 6px;font-size:clamp(1.6rem,4vw,2.1rem);font-weight:800;letter-spacing:-.02em}
 .lead{margin:0 0 18px;color:var(--ink2);font-size:.92rem}
@@ -63,9 +63,48 @@ code{font-family:var(--mono);font-size:.82em}
 .langs button:hover{color:var(--ink)}
 .langs i{font-style:normal;font-size:.62rem;font-weight:700;color:var(--ink2);opacity:.7;margin-right:2px}
 
+/* Müşteri ekranı iskeleti: sol içerik + alt reklam bandı, sağ sütunda üstte reklam (alışverişte altında sepet) */
+.stage{flex:1;display:grid;gap:20px;padding:20px;max-width:1280px;width:100%;margin:0 auto;align-items:start}
+@media (min-width:860px){.stage{grid-template-columns:minmax(0,1fr) 320px}}
+.stage-main{display:flex;flex-direction:column;gap:20px;min-width:0;min-height:calc(100vh - 96px)}
+.stage-side{display:grid;gap:16px}
+@media (min-width:860px){.stage-side{position:sticky;top:16px}}
+/* Dar ekran: tek sütun — içerik, sepet, alt reklam; sağ reklam gizli */
+@media (max-width:859px){
+  .stage-main,.stage-side{display:contents}
+  .stage-main>:first-child{order:1}
+  .stage .cart{order:2}
+  .stage .ad-bottom{order:3;margin-top:0}
+  .stage .ad-side{display:none}
+}
+
+/* Reklam alanları */
+.ad{position:relative;border-radius:8px;overflow:hidden;color:#fff}
+.tone-purple{background:var(--brand)}
+.tone-green{background:var(--go)}
+.tone-cream{background:#F1EAD9;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.ad-in{animation:ad-in .5s ease-out}
+.ad small{display:block;font-size:.6rem;font-weight:700;letter-spacing:.12em;opacity:.75}
+.ad b{display:block;font-weight:700;line-height:1.25}
+.ad p{margin:4px 0 0;font-size:.8rem;opacity:.85;line-height:1.35}
+.ad-side{padding:16px 18px 26px;min-height:200px}
+.ad-side .ad-in{display:grid;gap:10px}
+.ad-side .ad-em{font-size:2.6rem;line-height:1}
+.ad-side b{font-size:1.1rem}
+.ad-bottom{margin-top:auto;padding:14px 18px}
+.ad-bottom .ad-in{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"em sm" "em tx";column-gap:14px;align-items:center}
+.ad-bottom small{grid-area:sm}
+.ad-bottom .ad-em{grid-area:em;font-size:2rem}
+.ad-bottom .ad-tx{grid-area:tx;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px}
+.ad-bottom b{font-size:1rem}
+.ad-bottom p{margin:0}
+.ad-dots{position:absolute;right:12px;bottom:10px;display:flex;gap:4px}
+.ad-dots i{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.3}
+.ad-dots i.on{opacity:.9}
+@keyframes ad-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
 /* Alışveriş */
-.shop{flex:1;display:grid;gap:20px;padding:24px 20px;max-width:1200px;width:100%;margin:0 auto;align-items:start}
-@media (min-width:860px){.shop{grid-template-columns:1fr 320px}}
+.shop{display:block}
 .label{margin:0 0 12px;font-size:.72rem;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
 .label span{font-weight:500;letter-spacing:0}
 .pgrid{display:grid;grid-template-columns:1fr;gap:10px}
@@ -80,7 +119,6 @@ code{font-family:var(--mono);font-size:.82em}
 .sec{display:flex;gap:8px;flex-wrap:wrap}
 
 .cart{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px}
-@media (min-width:860px){.cart{position:sticky;top:16px}}
 .items{list-style:none;margin:0 0 14px;padding:0;min-height:44px}
 .items li{display:grid;grid-template-columns:22px 1fr auto 26px;gap:8px;align-items:center;padding:7px 0;font-size:.86rem}
 .items .em{font-size:1rem}
@@ -175,4 +213,4 @@ td.r .btn{font-family:var(--font)}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:.88rem;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
 #toast.on{opacity:1}
 @media (max-width:520px){.bar{padding:0 12px}.dot{display:none}}
-@media (prefers-reduced-motion:reduce){.meter i{transition:none}.spin{animation-duration:2.4s}}
+@media (prefers-reduced-motion:reduce){.ad-in{animation:none}.meter i{transition:none}.spin{animation-duration:2.4s}}

@@ -16,6 +16,7 @@ import SystemView from "./components/SystemView.jsx";
 import PaySheet from "./components/PaySheet.jsx";
 import Logo from "./components/Logo.jsx";
 import Splash from "./components/Splash.jsx";
+import AdSlot from "./components/AdSlot.jsx";
 
 const CART_NO = import.meta.env.VITE_CART_NO || "0417";
 const jitter = (w) => w * (1 + (Math.random() - 0.5) * 0.02);
@@ -129,16 +130,14 @@ export default function App() {
   }
 
   const done = pay?.stage === "done" && screen !== "sys";
+  const shopping = !done && screen === "shop";
   let body;
   if (done) body = <Done sale={pay.sale} onNew={() => { setPay(null); setScreen("shop"); }} />;
   else if (screen === "welcome") body = <Welcome cartNo={CART_NO} onStart={() => setScreen("shop")} say={say} />;
-  else if (screen === "shop") body = (
+  else if (shopping) body = (
     <main className="shop">
       <Shelf products={products} scaleConnected={scale.connected} onPick={pick}
         onSneak={sneak} onClearExtra={clearExtra} extra={verify.kind === "bad" ? verify.diff : 0} />
-      <CartScreen cart={cart} products={products} verify={verify} total={cartTotal(cart, products)}
-        expected={expectedWeight(cart, products)} measured={measured} stable={scale.stable}
-        canPay={canCheckout(cart, products, measured)} onDec={dec} onPay={() => setPay({ stage: "choose" })} />
     </main>
   );
   else body = (
@@ -165,7 +164,23 @@ export default function App() {
       {!done && screen === "shop" && verify.kind === "bad" && (
         <div className="alert" role="alert">Sepete okutulmadan bir ürün eklendi</div>
       )}
-      {body}
+      {!shopping && !done ? body : (
+        // Müşteri ekranları: solda içerik + altta reklam bandı, sağda üstte reklam (alışverişte altında sepet)
+        <div className="stage">
+          <div className="stage-main">
+            {body}
+            <AdSlot variant="bottom" offset={3} />
+          </div>
+          <div className="stage-side">
+            <AdSlot variant="side" offset={0} />
+            {shopping && (
+              <CartScreen cart={cart} products={products} verify={verify} total={cartTotal(cart, products)}
+                expected={expectedWeight(cart, products)} measured={measured} stable={scale.stable}
+                canPay={canCheckout(cart, products, measured)} onDec={dec} onPay={() => setPay({ stage: "choose" })} />
+            )}
+          </div>
+        </div>
+      )}
       <PaySheet pay={pay} total={cartTotal(cart, products)} onMethod={checkout} onClose={() => setPay(null)} />
       <div id="toast" className={toast ? "on" : ""} role="status" aria-live="polite">{toast}</div>
       {splash && <Splash onDone={endSplash} />}
