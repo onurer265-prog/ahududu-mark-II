@@ -1,4 +1,5 @@
 // Sunucu erişimi. Sunucu kapalıysa kiosk çevrimdışı (yerel katalog) çalışır.
+// Kiosk yalnızca okur ve ödeme gönderir; ürün / reklam yönetimi apps/admin'de.
 const BASE = import.meta.env.VITE_API_URL || "/api";
 
 async function req(path, opts = {}) {
@@ -9,11 +10,7 @@ async function req(path, opts = {}) {
 }
 
 export const api = {
-  health: () => req("/health"),
   products: () => req("/products"),
-  addProduct: (p) => req("/products", { method: "POST", body: JSON.stringify(p) }),
-  deleteProduct: (bc) => req("/products/" + encodeURIComponent(bc), { method: "DELETE" }),
-  checkout: (payload) => req("/checkout", { method: "POST", body: JSON.stringify(payload) }),
-  sales: () => req("/sales"),
   ads: () => req("/ads"),
+  checkout: (payload) => req("/checkout", { method: "POST", body: JSON.stringify(payload) }),
 };
