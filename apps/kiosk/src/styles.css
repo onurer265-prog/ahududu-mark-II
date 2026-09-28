@@ -1,0 +1,161 @@
+/* Ahududu kiosk — Mark I görünümü: krem zemin, mor üst bar, teal "öde" düğmeleri, mono rakamlar.
+   Palet ve yazı tipleri claude.ai "Ahududu Logo" kitinden (Mark I theme.ts); mor CLAUDE.md'deki #6A2C9E. */
+:root{
+  --paper:#FAF8F3; --card:#FFFFFF; --ink:#22201B; --ink2:#6C6557; --line:#DDD6C7;
+  --brand:#6A2C9E; --brand-ink:#FFFFFF;
+  --teal:#1F4D3D; --go:#3F7D5C; --go-hover:#1F4D3D; --go-soft:#3F7D5C;
+  --ok:#3F7D5C; --wait:#D9960B; --bad:#E0393E; --bad-soft:#FBE9E9;
+  --off:#CFC8B8;
+  --font:"Sora",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45}
+button,input,select{font:inherit;color:inherit}
+code{font-family:var(--mono);font-size:.82em}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Üst bar */
+.bar{background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px;min-height:56px}
+.bar .brand{display:flex;align-items:center;gap:9px;background:none;border:0;color:inherit;cursor:pointer;padding:8px 0}
+.bar .brand b{font-size:1.25rem;font-weight:800;letter-spacing:-.02em}
+.bar .brand small{font-size:.66rem;font-weight:700;letter-spacing:.08em;opacity:.8;margin-left:2px}
+.bar .right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.dot{font-size:.72rem;font-weight:600;opacity:.8;display:inline-flex;align-items:center;gap:5px;padding:0 4px}
+.dot::before{content:"";width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.45)}
+.dot.on{opacity:1}.dot.on::before{background:#7CF0B6}
+.systab{background:rgba(255,255,255,.14);border:0;color:#fff;font-size:.78rem;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;margin-left:6px}
+.systab[aria-pressed="true"]{background:#fff;color:var(--brand)}
+.alert{background:var(--bad);color:#fff;font-weight:700;font-size:.92rem;padding:10px 20px}
+
+/* Düğmeler */
+.btn{border:0;border-radius:6px;padding:11px 20px;font-weight:700;cursor:pointer;background:var(--go);color:#fff;transition:background .15s}
+.btn:hover:not(:disabled){background:var(--go-hover)}
+.btn:disabled{background:var(--off);color:#fff;cursor:not-allowed}
+.btn.go{padding:12px 30px;font-size:.98rem}
+.btn.warn{background:#fff;color:var(--bad);border:1px solid #EDB9B9;font-weight:600;padding:9px 14px}
+.btn.warn:hover{background:var(--bad-soft)}
+.btn.plain{background:#fff;color:var(--ink2);border:1px solid var(--line);font-weight:600;padding:9px 14px}
+.btn.plain:hover:not(:disabled){background:var(--paper)}
+.btn.plain:disabled{background:#fff;color:var(--off)}
+.btn.wide{width:100%}
+.btn.sm{padding:7px 12px;font-size:.85rem}
+.btn.ghost{background:#fff;color:var(--go);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--paper)}
+.btn.danger{background:#fff;color:var(--bad);border:1px solid var(--line)}
+
+/* Karşılama */
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:48px 16px 20px;max-width:560px;width:100%;margin:0 auto}
+.eyebrow{margin-top:14px;font-size:.7rem;font-weight:700;letter-spacing:.12em;color:var(--ink2)}
+.welcome h1{margin:6px 0 6px;font-size:clamp(1.6rem,4vw,2.1rem);font-weight:800;letter-spacing:-.02em}
+.lead{margin:0 0 18px;color:var(--ink2);font-size:.92rem}
+.steps{list-style:none;margin:0 0 20px;padding:0;width:100%;max-width:400px;display:grid;gap:8px}
+.steps li{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px 14px;text-align:left;font-size:.88rem}
+.steps .ic{font-size:1.15rem;width:24px;text-align:center}
+.sponsor{margin-top:18px;width:100%;max-width:400px;background:var(--go-soft);color:#fff;border-radius:6px;padding:10px 14px;display:flex;align-items:center;gap:12px;text-align:left}
+.sponsor .ic{font-size:1.3rem}
+.sponsor small{display:block;font-size:.6rem;letter-spacing:.12em;opacity:.8;font-weight:700}
+.sponsor b{font-size:.88rem}
+.langs{margin-top:auto;padding-top:28px;display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;align-items:center;font-size:.72rem;color:var(--ink2)}
+.langs>span{opacity:.7}
+.langs button{background:none;border:0;padding:4px 2px;cursor:pointer;color:var(--ink2)}
+.langs button:hover{color:var(--ink)}
+.langs i{font-style:normal;font-size:.62rem;font-weight:700;color:var(--ink2);opacity:.7;margin-right:2px}
+
+/* Alışveriş */
+.shop{flex:1;display:grid;gap:20px;padding:24px 20px;max-width:1200px;width:100%;margin:0 auto;align-items:start}
+@media (min-width:860px){.shop{grid-template-columns:1fr 320px}}
+.label{margin:0 0 12px;font-size:.72rem;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.label span{font-weight:500;letter-spacing:0}
+.pgrid{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:560px){.pgrid{grid-template-columns:1fr 1fr}}
+.pcard{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:12px 14px;cursor:pointer;text-align:left;transition:border-color .15s,transform .1s}
+.pcard:hover{border-color:#C9C5B9}
+.pcard:active{transform:scale(.985)}
+.pcard .em{font-size:1.5rem;width:30px;text-align:center}
+.pcard b{display:block;font-weight:600;font-size:.9rem}
+.pcard code{color:var(--ink2);font-size:.74rem}
+.shelf hr{border:0;border-top:1px solid var(--line);margin:22px 0 16px}
+.sec{display:flex;gap:8px;flex-wrap:wrap}
+
+.cart{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px}
+@media (min-width:860px){.cart{position:sticky;top:16px}}
+.items{list-style:none;margin:0 0 14px;padding:0;min-height:44px}
+.items li{display:grid;grid-template-columns:22px 1fr auto 26px;gap:8px;align-items:center;padding:7px 0;font-size:.86rem}
+.items .em{font-size:1rem}
+.items small{color:var(--ink2);font-size:.78rem}
+.items code{color:var(--ink2);font-size:.74rem}
+.items .x{width:26px;height:26px;border-radius:5px;border:1px solid var(--line);background:#fff;color:var(--ink2);cursor:pointer;line-height:1}
+.items .x:hover{color:var(--bad);border-color:#EDB9B9}
+.items .empty{display:block;color:var(--ink2);font-size:.84rem;padding:4px 0}
+.verify{border:1px solid var(--line);border-radius:6px;padding:12px 14px;background:#FAFAF7}
+.verify h3{margin:0 0 6px;font-size:.68rem;letter-spacing:.08em;font-weight:700}
+.verify code{display:block;font-size:.76rem}
+.verify code.dim{color:var(--ink2);margin-top:2px}
+.meter{height:5px;border-radius:3px;background:var(--line);margin-top:10px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ok);border-radius:3px;transition:width .35s ease}
+.st-wait .meter i{background:var(--wait)}
+.st-bad{background:var(--bad-soft);border-color:#EDB9B9}
+.st-bad h3{color:var(--bad)}
+.st-bad .meter i{background:var(--bad);width:100%!important}
+.st-ok h3{color:var(--ok)}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin:20px 0 10px;border-top:1px solid var(--line);padding-top:14px}
+.total span{color:var(--ink2);font-size:.84rem}
+.total strong{font-family:var(--mono);font-size:1.3rem;font-weight:500}
+.btn.pay{width:100%;padding:15px;font-size:1rem}
+
+/* Ödeme tamamlandı */
+.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 16px}
+.done .check{font-size:3rem;line-height:1;color:var(--ink)}
+.done h1{margin:18px 0 6px;font-size:1.5rem;font-weight:700}
+.done code{color:var(--ink2);font-size:.86rem}
+.done p{margin:10px 0 18px;color:var(--ink2);font-size:.8rem;max-width:30ch}
+
+/* Ödeme penceresi */
+.overlay{position:fixed;inset:0;background:rgba(30,28,24,.45);display:flex;align-items:center;justify-content:center;z-index:20;padding:16px}
+.sheet{background:var(--card);width:100%;max-width:400px;border-radius:8px;padding:22px}
+.sheet h2{margin:0 0 2px;font-size:1.15rem}
+.sheet p{margin:0 0 14px;color:var(--ink2)}
+.sheet .opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;margin-bottom:8px;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
+.sheet .opt:hover{border-color:#C9C5B9}
+.sheet .opt>span{font-size:1.3rem}
+.sheet .opt b{display:block;font-size:.92rem}
+.sheet .opt small{color:var(--ink2);font-size:.78rem}
+.spin{width:36px;height:36px;border:4px solid var(--line);border-top-color:var(--go);border-radius:50%;animation:sp .9s linear infinite;margin:12px 0 14px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* Sistem (geliştirici / yönetim) */
+.sys{flex:1;display:grid;gap:16px;padding:24px 20px;max-width:1200px;width:100%;margin:0 auto;align-items:start}
+@media (min-width:980px){.sys{grid-template-columns:380px 1fr}}
+.sys .grid{display:grid;gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px}
+.panel h2{margin:0 0 4px;font-size:1rem}
+.panel .sub{margin:0 0 14px;color:var(--ink2);font-size:.86rem;max-width:60ch}
+.panel h3{margin:18px 0 8px;font-size:.9rem}
+.prow{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.prow .nm{font-weight:600;font-size:.9rem}
+.prow .meta{display:block;color:var(--ink2);font-size:.74rem;font-weight:400;font-family:var(--mono)}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text],input[type=number],input:not([type]){background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px 12px;min-width:0;width:100%}
+.inline input{flex:1 1 120px;width:auto}
+.note{color:var(--ink2);font-size:.8rem;margin:14px 0 0}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.88rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--ink2);font-weight:600;font-size:.76rem}
+td.r,th.r{text-align:right;font-family:var(--mono);font-size:.8rem}
+td.r .btn{font-family:var(--font)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:12px;align-items:end}
+.form label{display:block;font-size:.76rem;color:var(--ink2);margin-bottom:3px}
+.log{max-height:300px;overflow:auto;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:.76rem;line-height:1.7}
+.log .c2{color:var(--ok)} .log .c4{color:var(--bad)} .log .c5{color:var(--bad)}
+.sale{padding:10px 0;border-top:1px solid var(--line)}
+.sale:first-child{border-top:0}
+.sale small{color:var(--ink2);display:block}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:.88rem;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
+#toast.on{opacity:1}
+@media (max-width:520px){.bar{padding:0 12px}.dot{display:none}}
+@media (prefers-reduced-motion:reduce){.meter i{transition:none}.spin{animation-duration:2.4s}}

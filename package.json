@@ -1,0 +1,17 @@
+{
+  "name": "ahududu-market",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Ahududu akıllı market arabası — kiosk, sunucu, cart-agent ve ESP32 terazi yazılımı",
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "dev": "npm run dev -w @ahududu/kiosk",
+    "dev:server": "npm run start -w @ahududu/server",
+    "dev:agent": "npm run start -w @ahududu/cart-agent",
+    "dev:agent:fake": "npm run fake -w @ahududu/cart-agent",
+    "build": "npm run build -w @ahududu/kiosk",
+    "test": "npm test -w @ahududu/domain && npm test -w @ahududu/server"
+  },
+  "engines": { "node": ">=20" }
+}
