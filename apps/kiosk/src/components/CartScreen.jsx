@@ -18,7 +18,9 @@ export default function CartScreen({ cart, products, verify, total, expected, me
               <span className="em" aria-hidden="true">{p.emoji || "📦"}</span>
               <span className="nm">{p.name} <small>×{i.qty}</small></span>
               <code>{price(p.price * i.qty)}</code>
-              <button className="x" onClick={() => onDec(i.barcode)} aria-label={p.name + " adedini azalt"}>−</button>
+              <button className="x" onClick={() => onDec(i.barcode)} aria-label={p.name + " sepetten çıkar"} title="Sepetten çıkar">
+                <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 2.5l5 5M7.5 2.5l-5 5" /></svg>
+              </button>
             </li>
           );
         }) : <li className="empty">Henüz ürün okutulmadı. Soldaki raftan bir ürün seçin.</li>}

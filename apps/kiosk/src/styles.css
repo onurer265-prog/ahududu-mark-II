@@ -63,6 +63,8 @@ code{font-family:var(--mono);font-size:.82em}
 .stage-main{display:flex;flex-direction:column;gap:20px;min-width:0;min-height:calc(100vh - 96px)}
 .stage-side{display:grid;gap:16px}
 @media (min-width:860px){.stage-side{position:sticky;top:16px}}
+/* Izgara öğeleri içeriklerine göre genişleyip sayfayı taşırmasın (ör. yatay kayan reyon şeridi) */
+.stage>*,.stage-main>*,.stage-side>*{min-width:0}
 /* Dar ekran: tek sütun — içerik, sepet, alt reklam; sağ reklam gizli */
 @media (max-width:859px){
   .stage-main,.stage-side{display:contents}
@@ -126,8 +128,12 @@ code{font-family:var(--mono);font-size:.82em}
 .items .em{font-size:1rem}
 .items small{color:var(--ink2);font-size:.78rem}
 .items code{color:var(--ink2);font-size:.74rem}
-.items .x{width:26px;height:26px;border-radius:5px;border:1px solid var(--line);background:#fff;color:var(--ink2);cursor:pointer;line-height:1}
-.items .x:hover{color:var(--bad);border-color:#EDB9B9}
+/* Sepetten çıkar: kırmızı küçük yuvarlak, beyaz çarpı. Görünen 22px, dokunma alanı 36px. */
+.items .x{position:relative;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:var(--bad);color:#fff;cursor:pointer;display:grid;place-items:center;justify-self:end;transition:background .15s,transform .1s}
+.items .x::before{content:"";position:absolute;inset:-7px;border-radius:50%}
+.items .x svg{width:10px;height:10px;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;fill:none}
+.items .x:hover{background:#C42A30}
+.items .x:active{transform:scale(.9)}
 .items .empty{display:block;color:var(--ink2);font-size:.84rem;padding:4px 0}
 .verify{border:1px solid var(--line);border-radius:6px;padding:12px 14px;background:#FAFAF7}
 .verify h3{margin:0 0 6px;font-size:.68rem;letter-spacing:.08em;font-weight:700}
