@@ -1,6 +1,6 @@
 // Ahududu demo kataloğu: Türkiye'de bilinen markalarla temsili bir market (≈180 ürün).
 // Fiyatlar yaklaşık, ağırlıklar ambalajlı brüt tahmin — panelden düzeltilir.
-// Barkodlar: ilk 8 ürün Mark I'den (869…), diğerleri GS1 "20" mağaza içi önekiyle üretilir;
+// Barkodlar: hepsi GS1 "20" mağaza içi önekli geçerli EAN-13 (Mark I'in 8 ürünü 2000001…, diğerleri 2000000…);
 // gerçek ürün barkodlarıyla çakışmaz. Gerçek ürünü okutmak için panelden gerçek barkodla eklenmeli.
 
 export const AISLES = [
@@ -24,17 +24,21 @@ export function ean13(d12) {
   return d12 + ((10 - (sum % 10)) % 10);
 }
 
-// Mark I rafındaki 8 ürün (barkodları ve satış geçmişi korunur)
+// Mark I rafındaki 8 ürün. Eski 869… barkodlarının kontrol hanesi geçersizdi (etiket basılsa okunmazdı);
+// katalog sürüm 3'te geçerli "2000001…" barkodlara taşındı. `old`: eski barkod (kayıtlı veri bununla çevrilir).
 const MARK_I = [
-  { barcode: "8690001000012", name: "Süt (1L)", price: 34.5, weight: 1030, emoji: "🥛", aisle: 2 },
-  { barcode: "8690001000029", name: "Ekmek", price: 12, weight: 350, emoji: "🍞", aisle: 1 },
-  { barcode: "8690001000036", name: "Yumurta (10'lu)", price: 68, weight: 620, emoji: "🥚", aisle: 2 },
-  { barcode: "8690001000043", name: "Domates (kg)", price: 28.9, weight: 1000, emoji: "🍅", aisle: 3 },
-  { barcode: "8690001000050", name: "Makarna (500g)", price: 22.5, weight: 500, emoji: "🍝", aisle: 4 },
-  { barcode: "8690001000067", name: "Zeytinyağı (1L)", price: 189, weight: 920, emoji: "🫒", aisle: 4 },
-  { barcode: "8690001000074", name: "Elma (kg)", price: 24.9, weight: 1000, emoji: "🍎", aisle: 3 },
-  { barcode: "8690001000081", name: "Peynir (500g)", price: 145, weight: 505, emoji: "🧀", aisle: 5 },
-];
+  { old: "8690001000012", name: "Süt (1L)", price: 34.5, weight: 1030, emoji: "🥛", aisle: 2 },
+  { old: "8690001000029", name: "Ekmek", price: 12, weight: 350, emoji: "🍞", aisle: 1 },
+  { old: "8690001000036", name: "Yumurta (10'lu)", price: 68, weight: 620, emoji: "🥚", aisle: 2 },
+  { old: "8690001000043", name: "Domates (kg)", price: 28.9, weight: 1000, emoji: "🍅", aisle: 3 },
+  { old: "8690001000050", name: "Makarna (500g)", price: 22.5, weight: 500, emoji: "🍝", aisle: 4 },
+  { old: "8690001000067", name: "Zeytinyağı (1L)", price: 189, weight: 920, emoji: "🫒", aisle: 4 },
+  { old: "8690001000074", name: "Elma (kg)", price: 24.9, weight: 1000, emoji: "🍎", aisle: 3 },
+  { old: "8690001000081", name: "Peynir (500g)", price: 145, weight: 505, emoji: "🧀", aisle: 5 },
+].map(({ old, ...p }, i) => ({ old, barcode: ean13("2000001" + String(i + 1).padStart(5, "0")), ...p }));
+
+/** Eski → yeni barkod (sürüm 3 geçişi için). */
+export const BARCODE_RENAMES = Object.fromEntries(MARK_I.map((p) => [p.old, p.barcode]));
 
 // [marka, ürün, fiyat ₺, ağırlık g, simge, reyon]
 const ROWS = [
@@ -242,7 +246,7 @@ const ROWS = [
 ];
 
 export const DEFAULT_PRODUCTS = [
-  ...MARK_I,
+  ...MARK_I.map(({ old, ...p }) => p),
   ...ROWS.map(([brand, name, price, weight, emoji, aisle], i) => ({
     barcode: ean13("2000000" + String(i + 1).padStart(5, "0")),
     name: brand + " " + name, brand, price, weight, emoji, aisle,
@@ -250,7 +254,7 @@ export const DEFAULT_PRODUCTS = [
 ];
 
 /** Kataloğun sürümü — sunucu eski kayıtlara yeni ürün / reklamları bir kez ekler. */
-export const CATALOG_VERSION = 2;
+export const CATALOG_VERSION = 3; // 2: büyük katalog + markalı reklamlar, 3: Mark I barkodları geçerli EAN-13
 
 // Reklamlar katalogdaki markalara göre. tone: "purple" | "green" | "cream", place: "side" | "bottom" | "both"
 export const DEFAULT_ADS = [

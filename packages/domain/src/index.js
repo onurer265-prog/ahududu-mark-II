@@ -2,7 +2,7 @@
 
 // Katalog (reyonlar, ≈180 ürün, markalı reklamlar) ayrı dosyada.
 import { AISLES } from "./catalog.js";
-export { AISLES, DEFAULT_PRODUCTS, DEFAULT_ADS, CATALOG_VERSION, LEGACY_AD_IDS, ean13 } from "./catalog.js";
+export { AISLES, DEFAULT_PRODUCTS, DEFAULT_ADS, CATALOG_VERSION, LEGACY_AD_IDS, BARCODE_RENAMES, ean13 } from "./catalog.js";
 
 /**
  * Araba durumu (kiosk → sunucu → panel). stage: alışveriş aşaması.

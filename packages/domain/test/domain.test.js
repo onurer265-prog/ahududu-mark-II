@@ -4,10 +4,10 @@ import {
   DEFAULT_PRODUCTS as P, addToCart, removeFromCart, expectedWeight, cartTotal,
   verifyWeight, canCheckout, validateProduct, cleanProduct, salesSummary, bucketSales,
   DEFAULT_ADS, validateAd, cleanAd, adsFor,
-  cartStage, cleanCartStatus, fleetSummary, cartZone, AISLES, ean13,
+  cartStage, cleanCartStatus, fleetSummary, cartZone, AISLES, ean13, BARCODE_RENAMES,
 } from "../src/index.js";
 
-const SUT = "8690001000012", CIK = "8690001000029"; // Süt 1030 g / 34,50 ₺ · Ekmek 350 g / 12 ₺
+const SUT = P[0].barcode, CIK = P[1].barcode, ELMA = P[6].barcode; // Süt 1030 g / 34,50 ₺ · Ekmek 350 g / 12 ₺ · Elma 24,90 ₺
 
 test("sepete ekle / azalt", () => {
   let c = addToCart([], SUT);
@@ -23,7 +23,7 @@ test("beklenen ağırlık ve toplam", () => {
   assert.equal(expectedWeight(c, P), 2410);
   assert.equal(cartTotal(c, P), 81);
   // Mark I videosundaki sepet: Süt + Ekmek + Elma = 71,40 ₺
-  assert.equal(cartTotal([{ barcode: SUT, qty: 1 }, { barcode: CIK, qty: 1 }, { barcode: "8690001000074", qty: 1 }], P), 71.4);
+  assert.equal(cartTotal([{ barcode: SUT, qty: 1 }, { barcode: CIK, qty: 1 }, { barcode: ELMA, qty: 1 }], P), 71.4);
 });
 
 test("ağırlık doğrulama durumları", () => {
@@ -122,8 +122,12 @@ test("katalog: barkodlar, ürünler, reyonlar, reklamlar", () => {
   assert.ok(P.length > 150);
   const codes = P.map((p) => p.barcode);
   assert.equal(new Set(codes).size, codes.length, "barkodlar benzersiz");
-  // Üretilen demo barkodlar geçerli EAN-13 (Mark I'in 869… barkodlarının kontrol hanesi geçersiz, bkz. CLAUDE.md)
-  for (const c of codes.filter((c) => c.startsWith("20"))) assert.equal(ean13(c.slice(0, 12)), c, "geçerli EAN-13: " + c);
+  // Bütün barkodlar geçerli EAN-13 ve mağaza içi "20" önekli (gerçek ürünlerle çakışmaz)
+  for (const c of codes) { assert.equal(ean13(c.slice(0, 12)), c, "geçerli EAN-13: " + c); assert.match(c, /^20\d{11}$/); }
+  // Mark I'in eski barkodları yeni barkodlara eşleniyor
+  assert.equal(Object.keys(BARCODE_RENAMES).length, 8);
+  assert.equal(BARCODE_RENAMES["8690001000012"], SUT);
+  assert.notEqual(ean13("869000100001"), "8690001000012"); // eski barkodun kontrol hanesi gerçekten geçersizdi
   for (const p of P) assert.equal(validateProduct(p), null, p.name);
   for (const a of AISLES) assert.ok(P.some((p) => p.aisle === a.no), "reyon boş değil: " + a.name);
   assert.ok(P.every((p) => AISLES.some((a) => a.no === p.aisle)));

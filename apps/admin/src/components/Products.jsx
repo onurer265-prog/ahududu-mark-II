@@ -74,7 +74,7 @@ export default function Products({ products, sales, onSave, onDelete }) {
         <p className="muted">Ağırlık, arabadaki terazinin beklediği değerdir. Ürünü tartıp gram olarak yazın; tolerans en az 25 g ya da %3.</p>
         <form onSubmit={submit}>
           <label>Barkod
-            <input inputMode="numeric" required value={f.barcode} onChange={set("barcode")} disabled={!!editing} placeholder="8690001000098" />
+            <input inputMode="numeric" required value={f.barcode} onChange={set("barcode")} disabled={!!editing} placeholder="Ürünün üzerindeki 13 hane" />
           </label>
           <label>Marka <em>isteğe bağlı</em>
             <input value={f.brand} onChange={set("brand")} placeholder="Sütaş" />

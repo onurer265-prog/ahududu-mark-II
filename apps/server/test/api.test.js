@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createApp } from "../src/app.js";
 import { createStore } from "../src/store.js";
-import { DEFAULT_ADS, DEFAULT_PRODUCTS } from "@ahududu/domain";
+import { BARCODE_RENAMES, DEFAULT_ADS, DEFAULT_PRODUCTS } from "@ahududu/domain";
+
+const SUT = DEFAULT_PRODUCTS[0].barcode; // Süt (1L) 1030 g / 34,50 ₺
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -24,7 +26,7 @@ test("ürün listesi ve ekleme", () => withServer(async (b) => {
 }));
 
 test("ödeme ağırlık doğrulamasına bağlı", () => withServer(async (b) => {
-  const cart = [{ barcode: "8690001000012", qty: 1 }];
+  const cart = [{ barcode: SUT, qty: 1 }];
   const rej = await fetch(b + "/checkout", { method: "POST", body: JSON.stringify({ cart, measured: 0 }) });
   assert.equal(rej.status, 409);
   const acc = await fetch(b + "/checkout", { method: "POST", body: JSON.stringify({ cart, measured: 1035, method: "POS" }) });
@@ -70,17 +72,26 @@ test("araba durumları", () => withServer(async (b) => {
   assert.ok(Date.now() - Date.parse(carts[0].seen) < 5000);
 }));
 
+// Mark I dönemindeki gibi eski (869…) barkodlu 8 ürün
+const OLD = Object.keys(BARCODE_RENAMES);
+const oldMarkI = () => DEFAULT_PRODUCTS.slice(0, 8).map(({ aisle, ...p }, i) => ({ ...p, barcode: OLD[i] }));
+const tmpFile = () => path.join(fs.mkdtempSync(path.join(os.tmpdir(), "ahududu-")), "db.json");
+
 test("eski veri dosyası yeni kataloğa bir kez taşınır", () => {
-  const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "ahududu-")), "db.json");
+  const file = tmpFile();
   const old = {
-    products: [...DEFAULT_PRODUCTS.slice(0, 8).map(({ aisle, ...p }) => p), { barcode: "8690009999999", name: "Benim ürünüm", price: 5, weight: 100 }],
+    products: [...oldMarkI(), { barcode: "8690009999999", name: "Benim ürünüm", price: 5, weight: 100 }],
     ads: [{ id: "ad-zeytin", brand: "Eski", title: "Eski varsayılan", tone: "purple", place: "both", active: true },
       { id: "ad-benim", brand: "Benim", title: "Benim reklamım", tone: "green", place: "side", active: true }],
-    sales: [{ id: "F-1001", total: 10, items: [] }], rejects: [], seq: 1001,
+    sales: [{ id: "F-1001", total: 46.5, items: [{ barcode: OLD[0], name: "Süt (1L)", qty: 1, price: 34.5 }, { barcode: OLD[1], name: "Ekmek", qty: 1, price: 12 }] }],
+    rejects: [], seq: 1001,
   };
   fs.writeFileSync(file, JSON.stringify(old));
   let db = createStore(file).db;
-  assert.equal(db.catalogVersion, 2);
+  assert.equal(db.catalogVersion, 3);
+  assert.ok(!db.products.some((p) => BARCODE_RENAMES[p.barcode]));             // eski barkod kalmadı
+  assert.deepEqual(db.sales[0].items.map((i) => i.barcode), [SUT, DEFAULT_PRODUCTS[1].barcode]); // satış geçmişi çevrildi
+  assert.equal(db.sales[0].total, 46.5);
   assert.equal(db.products.length, DEFAULT_PRODUCTS.length + 1);               // yeni ürünler + benim ürünüm
   assert.ok(db.products.find((p) => p.barcode === "8690009999999"));
   assert.equal(db.products[0].aisle, 2);                                        // reyon eklendi
@@ -95,13 +106,32 @@ test("eski veri dosyası yeni kataloğa bir kez taşınır", () => {
   assert.ok(!db.products.some((p) => p.barcode === DEFAULT_PRODUCTS[20].barcode));
 });
 
+test("sürüm 2 dosyası (büyük katalog + eski Mark I barkodları) sürüm 3'e taşınır", () => {
+  const file = tmpFile();
+  const v2 = {
+    catalogVersion: 2,
+    products: [...oldMarkI(), ...DEFAULT_PRODUCTS.slice(8).map((p) => ({ ...p })), { barcode: "8690009999999", name: "Benim ürünüm", price: 5, weight: 100 }],
+    ads: DEFAULT_ADS.map((a) => ({ ...a })),
+    sales: [{ id: "F-1001", total: 34.5, items: [{ barcode: OLD[0], name: "Süt (1L)", qty: 1, price: 34.5 }] }], rejects: [], seq: 1001,
+  };
+  fs.writeFileSync(file, JSON.stringify(v2));
+  const db = createStore(file).db;
+  assert.equal(db.catalogVersion, 3);
+  assert.equal(db.products.length, DEFAULT_PRODUCTS.length + 1);               // ikilenme yok
+  assert.equal(new Set(db.products.map((p) => p.barcode)).size, db.products.length);
+  assert.equal(db.products[0].barcode, SUT);
+  assert.equal(db.sales[0].items[0].barcode, SUT);
+  assert.equal(db.ads.length, DEFAULT_ADS.length);                              // reklamlara dokunulmadı
+  assert.equal(JSON.parse(fs.readFileSync(file, "utf8")).catalogVersion, 3);    // diske yazıldı
+});
+
 test("ürün düzenleme", () => withServer(async (b) => {
   const put = (bc, body) => fetch(b + "/products/" + bc, { method: "PUT", body: JSON.stringify(body) });
-  const ok = await put("8690001000012", { barcode: "999999", name: "Süt (1L)", price: 36.9, weight: 1030, emoji: "🥛" });
+  const ok = await put(SUT, { barcode: "999999", name: "Süt (1L)", price: 36.9, weight: 1030, emoji: "🥛" });
   assert.equal(ok.status, 200);
   const p = await ok.json();
-  assert.equal(p.barcode, "8690001000012"); // barkod değişmez
+  assert.equal(p.barcode, SUT); // barkod değişmez
   assert.equal(p.price, 36.9);
-  assert.equal((await put("8690001000012", { name: "", price: 1, weight: 1 })).status, 400);
+  assert.equal((await put(SUT, { name: "", price: 1, weight: 1 })).status, 400);
   assert.equal((await put("8690009999999", { name: "x", price: 1, weight: 1 })).status, 404);
 }));
