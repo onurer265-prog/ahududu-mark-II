@@ -12,7 +12,7 @@ import Welcome from "./components/Welcome.jsx";
 import Shelf from "./components/Shelf.jsx";
 import CartScreen from "./components/CartScreen.jsx";
 import Done from "./components/Done.jsx";
-import PaySheet from "./components/PaySheet.jsx";
+import Checkout from "./components/Checkout.jsx";
 import Logo from "./components/Logo.jsx";
 import Splash from "./components/Splash.jsx";
 import AdSlot from "./components/AdSlot.jsx";
@@ -117,12 +117,13 @@ export default function App() {
   }, [status, online]);
 
   const done = pay?.stage === "done";
-  const shopping = !done && screen === "shop";
+  const paying = !!pay && !done; // ödeme sayfası (yöntem seçimi / işlem)
+  const shopping = !done && !paying && screen === "shop";
 
   return (
     <div className="app">
       <header className="bar">
-        <button className="brand" onClick={() => { if (!done) setScreen(cart.length ? "shop" : "welcome"); }} aria-label="Ana ekran">
+        <button className="brand" onClick={() => { if (!done && !paying) setScreen(cart.length ? "shop" : "welcome"); }} aria-label="Ana ekran">
           <Logo size={22} berry="#FAF8F3" leaf="#B9FFDF" /><b>Ahududu</b><small>ARABA #{CART_NO}</small>
         </button>
         <div className="right">
@@ -133,33 +134,34 @@ export default function App() {
       {shopping && verify.kind === "bad" && (
         <div className="alert" role="alert">Sepete okutulmadan bir ürün eklendi</div>
       )}
-      {!shopping && !done ? (
+      {paying ? (
+        // Ödeme sayfası: tam sayfa, reklamsız
+        <Checkout cart={cart} products={products} total={cartTotal(cart, products)}
+          canPay={canCheckout(cart, products, measured) && scale.stable} stage={pay.stage} method={pay.method}
+          onMethod={checkout} onBack={() => setPay(null)} />
+      ) : done ? (
+        // Ödeme tamamlandı: tam sayfa, reklamsız
+        <Done sale={pay.sale} onNew={() => { setPay(null); setScreen("shop"); }} />
+      ) : !shopping ? (
         <Welcome cartNo={CART_NO} onStart={() => setScreen("shop")} say={say} />
       ) : (
-        // Müşteri ekranları: solda içerik + altta reklam bandı, sağda üstte reklam (alışverişte altında sepet)
+        // Alışveriş: solda raf + altta reklam bandı, sağda üstte reklam, altında sepet. Reklam yalnızca bu ekranda.
         <div className="stage">
           <div className="stage-main">
-            {done
-              ? <Done sale={pay.sale} onNew={() => { setPay(null); setScreen("shop"); }} />
-              : (
-                <main className="shop">
-                  <Shelf products={products} scaleConnected={scale.connected} onPick={pick}
-                    onSneak={sneak} onClearExtra={clearExtra} extra={verify.kind === "bad" ? verify.diff : 0} />
-                </main>
-              )}
+            <main className="shop">
+              <Shelf products={products} scaleConnected={scale.connected} onPick={pick}
+                onSneak={sneak} onClearExtra={clearExtra} extra={verify.kind === "bad" ? verify.diff : 0} />
+            </main>
             <AdSlot variant="bottom" ads={adsFor(ads, "bottom")} offset={Math.ceil(adsFor(ads, "bottom").length / 2)} />
           </div>
           <div className="stage-side">
             <AdSlot variant="side" ads={adsFor(ads, "side")} offset={0} />
-            {shopping && (
-              <CartScreen cart={cart} products={products} verify={verify} total={cartTotal(cart, products)}
-                expected={expectedWeight(cart, products)} measured={measured} stable={scale.stable}
-                canPay={canCheckout(cart, products, measured)} onDec={dec} onPay={() => setPay({ stage: "choose" })} />
-            )}
+            <CartScreen cart={cart} products={products} verify={verify} total={cartTotal(cart, products)}
+              expected={expectedWeight(cart, products)} measured={measured} stable={scale.stable}
+              canPay={canCheckout(cart, products, measured)} onDec={dec} onPay={() => setPay({ stage: "choose" })} />
           </div>
         </div>
       )}
-      <PaySheet pay={pay} total={cartTotal(cart, products)} onMethod={checkout} onClose={() => setPay(null)} />
       <div id="toast" className={toast ? "on" : ""} role="status" aria-live="polite">{toast}</div>
       {splash && <Splash onDone={endSplash} />}
     </div>

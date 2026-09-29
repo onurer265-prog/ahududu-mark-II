@@ -32,7 +32,7 @@ export default function CartScreen({ cart, products, verify, total, expected, me
         <div className="meter"><i style={{ width: fill + "%" }} /></div>
       </div>
       <div className="total"><span>Toplam</span><strong>{price(total)}</strong></div>
-      <button className="btn pay" disabled={!canPay || !stable} onClick={onPay}>{canPay ? "Öde · " + price(total) : "Öde"}</button>
+      <button className="btn pay" disabled={!canPay || !stable} onClick={onPay}>{canPay ? "Ödemeye geç · " + price(total) : "Ödemeye geç"}</button>
     </section>
   );
 }
