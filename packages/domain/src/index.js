@@ -2,6 +2,7 @@
 
 // Katalog (reyonlar, ≈180 ürün, markalı reklamlar) ayrı dosyada.
 import { AISLES } from "./catalog.js";
+export { STORE_MAP, shelfOf, zonePoint, route, routeLength } from "./storemap.js";
 export { AISLES, DEFAULT_PRODUCTS, DEFAULT_ADS, CATALOG_VERSION, LEGACY_AD_IDS, BARCODE_RENAMES, ean13 } from "./catalog.js";
 
 /**

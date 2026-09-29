@@ -154,14 +154,24 @@ input:disabled{background:var(--paper);color:var(--ink2)}
 .st-idle{--st:#948C7B}.st-shopping{--st:var(--brand)}.st-alert{--st:var(--bad)}.st-paying{--st:var(--go)}.st-paid{--st:#7FB59A}.st-stale{--st:#C9C2B2}
 .legend i{background:var(--st)}
 .legend i.st-stale{background:none;border:1.5px dashed var(--st)}
-.map{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
-.zone{border:1px solid var(--line);border-radius:8px;padding:10px;min-height:96px;background:repeating-linear-gradient(0deg,transparent 0 18px,var(--line2) 18px 19px)}
-.zone.edge{background:var(--paper)}
-.zone b{display:block;font-size:.8rem}
-.zone small{display:block;font-size:.7rem;color:var(--ink3);margin-bottom:8px}
-.chips{display:flex;flex-wrap:wrap;gap:4px}
-.chip{font-family:var(--mono);font-size:.72rem;font-weight:500;color:#fff;background:var(--st);padding:2px 7px;border-radius:999px}
-.chip.st-stale{background:#fff;color:var(--ink2);border:1.5px dashed var(--st)}
+/* Market krokisi — kiosk "Ürün bul" krokisiyle aynı çizim (apps/kiosk/src/styles.css) */
+.map{max-width:980px}
+.storemap{width:100%;height:auto;display:block;font-family:var(--font)}
+.storemap .floor{fill:#fff;stroke:var(--line);stroke-width:3}
+.storemap .door{fill:var(--go)}
+.storemap .counter{fill:#E9E3D3;stroke:var(--line);stroke-width:2}
+.storemap .zone-label{font-size:18px;font-weight:700;letter-spacing:.12em;fill:var(--ink2)}
+.storemap .shelf rect{fill:#F1EAD9;stroke:#D8CFB9;stroke-width:2}
+.storemap .shelf.busy rect{fill:#EFE6F7;stroke:#CDB6E4}
+.storemap .shelf .no{font-size:34px;font-weight:800;fill:var(--ink);font-family:var(--mono)}
+.storemap .shelf .nm{font-size:13.5px;font-weight:600;fill:var(--ink2)}
+.cartmark rect{fill:var(--st);stroke:#fff;stroke-width:3;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18))}
+.cartmark text{font-family:var(--mono);font-size:15px;font-weight:600;fill:#fff}
+.cartmark.st-stale rect{fill:#fff;stroke:var(--st);stroke-dasharray:5 4}
+.cartmark.st-stale text{fill:var(--ink2)}
+.cartmark .ring{fill:none;stroke:var(--bad);stroke-width:3;opacity:.6;transform-origin:center;animation:ring 1.4s ease-out infinite}
+@keyframes ring{from{transform:scale(.8);opacity:.7}to{transform:scale(1.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){.cartmark .ring{animation:none}}
 .carts{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 .cartcard{box-shadow:inset 3px 0 0 var(--st)}
 .cartcard .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}

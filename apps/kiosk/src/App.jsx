@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_PRODUCTS, DEFAULT_ADS, addToCart, removeFromCart, cartTotal, expectedWeight,
-  verifyWeight, canCheckout, findProduct, adsFor, cartStage,
+  verifyWeight, canCheckout, findProduct, adsFor, cartStage, zonePoint,
 } from "@ahududu/domain";
 import { useBattery } from "./lib/useBattery.js";
 import { api } from "./lib/api.js";
@@ -13,6 +13,7 @@ import Shelf from "./components/Shelf.jsx";
 import CartScreen from "./components/CartScreen.jsx";
 import Done from "./components/Done.jsx";
 import Checkout from "./components/Checkout.jsx";
+import Finder from "./components/Finder.jsx";
 import Logo from "./components/Logo.jsx";
 import Splash from "./components/Splash.jsx";
 import AdSlot from "./components/AdSlot.jsx";
@@ -34,6 +35,7 @@ export default function App() {
   const [splash, setSplash] = useState(true);
   const endSplash = useCallback(() => setSplash(false), []);
   const [aisle, setAisle] = useState(null); // konum (F1): son okutulan ürünün reyonu
+  const [finder, setFinder] = useState(false); // "Ürün bul" krokisi açık mı
   const scale = useScale();
   const battery = useBattery();
 
@@ -119,6 +121,9 @@ export default function App() {
   const done = pay?.stage === "done";
   const paying = !!pay && !done; // ödeme sayfası (yöntem seçimi / işlem)
   const shopping = !done && !paying && screen === "shop";
+  const finding = shopping && finder;
+  // Yeni müşteri: açılış animasyonu yeniden oynar, karşılama ekranına dönülür
+  const newShopping = () => { setPay(null); setAisle(null); setFinder(false); setScreen("welcome"); setSplash(true); };
 
   return (
     <div className="app">
@@ -141,7 +146,11 @@ export default function App() {
           onMethod={checkout} onBack={() => setPay(null)} />
       ) : done ? (
         // Ödeme tamamlandı: tam sayfa, reklamsız
-        <Done sale={pay.sale} onNew={() => { setPay(null); setScreen("shop"); }} />
+        <Done sale={pay.sale} onNew={newShopping} />
+      ) : finding ? (
+        // Ürün bul: market krokisi + rota, tam sayfa, reklamsız
+        <Finder products={products} here={zonePoint(aisle)} onBack={() => setFinder(false)}
+          onPick={(p) => { pick(p); setFinder(false); }} />
       ) : !shopping ? (
         <Welcome cartNo={CART_NO} onStart={() => setScreen("shop")} say={say} />
       ) : (
@@ -149,7 +158,7 @@ export default function App() {
         <div className="stage">
           <div className="stage-main">
             <main className="shop">
-              <Shelf products={products} scaleConnected={scale.connected} onPick={pick}
+              <Shelf products={products} scaleConnected={scale.connected} onPick={pick} onFind={() => setFinder(true)}
                 onSneak={sneak} onClearExtra={clearExtra} extra={verify.kind === "bad" ? verify.diff : 0} />
             </main>
             <AdSlot variant="bottom" ads={adsFor(ads, "bottom")} offset={Math.ceil(adsFor(ads, "bottom").length / 2)} />

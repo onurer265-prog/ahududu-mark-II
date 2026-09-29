@@ -158,6 +158,69 @@ code{font-family:var(--mono);font-size:.82em}
 .done code{color:var(--ink2);font-size:.86rem}
 .done p{margin:10px 0 18px;color:var(--ink2);font-size:.8rem;max-width:30ch}
 
+/* Raf başlığı araçları */
+.shelf-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn.findmap{padding:8px 14px;font-size:.86rem;background:var(--brand)}
+.btn.findmap:hover:not(:disabled){background:#56217F}
+
+/* Market krokisi (kiosk "Ürün bul" + panel aynı geometri) */
+.storemap{width:100%;height:auto;display:block;font-family:var(--font)}
+.storemap .floor{fill:#fff;stroke:var(--line);stroke-width:3}
+.storemap .door{fill:var(--go)}
+.storemap .counter{fill:#E9E3D3;stroke:var(--line);stroke-width:2}
+.storemap .zone-label{font-size:18px;font-weight:700;letter-spacing:.12em;fill:var(--ink2)}
+.storemap .shelf rect{fill:#F1EAD9;stroke:#D8CFB9;stroke-width:2;transition:fill .2s}
+.storemap .shelf .no{font-size:34px;font-weight:800;fill:var(--ink);font-family:var(--mono)}
+.storemap .shelf .nm{font-size:13.5px;font-weight:600;fill:var(--ink2)}
+.storemap .shelf[role=button]{cursor:pointer}
+.storemap .shelf[role=button]:hover rect{fill:#EADFC6}
+.storemap .shelf:focus-visible{outline:none}
+.storemap .shelf:focus-visible rect{stroke:var(--brand);stroke-width:4}
+.storemap .shelf.on rect{fill:var(--brand);stroke:var(--brand);animation:shelf-glow 1.4s ease-in-out infinite}
+.storemap .shelf.on text{fill:#fff}
+.storemap .route-bg{fill:none;stroke:#E6D8F2;stroke-width:16;stroke-linecap:round;stroke-linejoin:round}
+.storemap .route{fill:none;stroke:var(--brand);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:18 14;animation:route-flow .9s linear infinite, route-in .6s ease-out}
+.storemap .goal{fill:#fff;stroke:var(--brand);stroke-width:6}
+.storemap .here .dot{fill:var(--go);stroke:#fff;stroke-width:4}
+.storemap .here .pulse{fill:var(--go);opacity:.3;transform-origin:center;animation:here-pulse 1.6s ease-out infinite}
+.storemap .here-label{font-size:16px;font-weight:700;fill:var(--go);paint-order:stroke;stroke:#fff;stroke-width:5px}
+@keyframes route-flow{to{stroke-dashoffset:-32}}
+@keyframes route-in{from{opacity:0}to{opacity:1}}
+@keyframes here-pulse{from{transform:scale(1);opacity:.45}to{transform:scale(2.4);opacity:0}}
+@keyframes shelf-glow{50%{fill:#8240BD}}
+
+/* Ürün bul sayfası (tam sayfa, reklamsız) */
+.finder{flex:1;width:100%;max-width:1240px;margin:0 auto;padding:24px 20px 40px}
+.fd-grid{display:grid;gap:18px;align-items:start}
+@media (min-width:900px){.fd-grid{grid-template-columns:340px minmax(0,1fr)}}
+.fd-side{display:grid;gap:14px}
+.fd-search{background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:12px 14px;font-size:1rem;width:100%}
+.fd-search:focus{border-color:var(--brand);outline:none}
+.fd-results{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.fd-results button{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px 12px;cursor:pointer}
+.fd-results button.on{border-color:var(--brand);box-shadow:inset 3px 0 0 var(--brand)}
+.fd-results .em{font-size:1.3rem}
+.fd-results .nm{font-weight:600;font-size:.9rem}
+.fd-results small{display:block;font-weight:500;color:var(--ink2);font-size:.76rem}
+.fd-results .none{color:var(--ink2);font-size:.86rem}
+.fd-side .label{margin:0}
+.fd-aisles{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fd-aisles button{background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px 10px;text-align:left;font-size:.8rem;font-weight:600;color:var(--ink2);cursor:pointer}
+.fd-aisles button b{font-family:var(--mono);color:var(--ink);margin-right:4px}
+.fd-aisles button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.fd-aisles button.on b{color:#fff}
+.fd-target{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;padding:14px;border-radius:8px;background:#F4EDFA;border:1px solid #DCC9EE}
+.fd-target .em{font-size:1.8rem}
+.fd-target .info b{display:block;font-size:.95rem}
+.fd-target .info code{color:var(--ink2)}
+.fd-target .where{grid-column:1/-1}
+.fd-target .where strong{display:block;color:var(--brand);font-size:1.05rem}
+.fd-target .where span{font-size:.8rem;color:var(--ink2)}
+.fd-target .btn{grid-column:1/-1}
+.fd-map{padding:14px}
+.fd-hint{margin:8px 4px 0;font-size:.76rem;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){.storemap .route,.storemap .here .pulse,.storemap .shelf.on rect{animation:none}}
+
 /* Ödeme sayfası (tam sayfa, reklamsız) */
 .checkout{flex:1;width:100%;max-width:960px;margin:0 auto;padding:24px 20px 40px}
 .co-top{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap}

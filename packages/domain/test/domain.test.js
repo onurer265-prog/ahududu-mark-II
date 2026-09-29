@@ -5,6 +5,7 @@ import {
   verifyWeight, canCheckout, validateProduct, cleanProduct, salesSummary, bucketSales,
   DEFAULT_ADS, validateAd, cleanAd, adsFor,
   cartStage, cleanCartStatus, fleetSummary, cartZone, AISLES, ean13, BARCODE_RENAMES,
+  STORE_MAP, shelfOf, zonePoint, route, routeLength,
 } from "../src/index.js";
 
 const SUT = P[0].barcode, CIK = P[1].barcode, ELMA = P[6].barcode; // Süt 1030 g / 34,50 ₺ · Ekmek 350 g / 12 ₺ · Elma 24,90 ₺
@@ -136,6 +137,41 @@ test("katalog: barkodlar, ürünler, reyonlar, reklamlar", () => {
   const brands = new Set(P.map((p) => p.brand).filter(Boolean));
   for (const ad of DEFAULT_ADS) assert.ok(brands.has(ad.brand), "reklam markası katalogda: " + ad.brand);
   assert.equal(new Set(DEFAULT_ADS.map((a) => a.id)).size, DEFAULT_ADS.length);
+});
+
+test("market krokisi ve rota", () => {
+  const M = STORE_MAP;
+  assert.equal(M.shelves.length, AISLES.length);
+  // Raflar birbirine ve duvarlara çakışmaz
+  for (const s of M.shelves) {
+    assert.ok(s.x > M.wall && s.x + s.w < M.w - M.wall && s.y > M.wall && s.y + s.h < M.h - M.wall, "raf içeride: " + s.name);
+    for (const t of M.shelves) if (t !== s) assert.ok(s.x + s.w <= t.x || t.x + t.w <= s.x || s.y + s.h <= t.y || t.y + t.h <= s.y);
+  }
+  // Bir doğru parçası rafın içinden geçiyor mu (kenara değmek serbest)
+  const cuts = (p, q, s) => {
+    const [x1, x2] = [Math.min(p.x, q.x), Math.max(p.x, q.x)], [y1, y2] = [Math.min(p.y, q.y), Math.max(p.y, q.y)];
+    return x1 < s.x + s.w && x2 > s.x && y1 < s.y + s.h && y2 > s.y;
+  };
+  const check = (a, b, label) => {
+    const pts = route(a, b);
+    assert.deepEqual(pts[0], a, label); assert.deepEqual(pts.at(-1), b, label);
+    for (let i = 1; i < pts.length; i++) {
+      const [p, q] = [pts[i - 1], pts[i]];
+      assert.ok(p.x === q.x || p.y === q.y, "dik açılı: " + label);
+      for (const s of M.shelves) assert.ok(!cuts(p, q, s), `${label} rotası ${s.name} rafının içinden geçiyor`);
+    }
+    return pts;
+  };
+  const points = [M.entry, M.checkout, ...M.shelves.map((s) => s.stand)];
+  for (const a of points) for (const b of points) check(a, b, `${a.x},${a.y}→${b.x},${b.y}`);
+  // Girişten 1. reyona: önce yukarı, sonra sağa, sonra yukarı (en fazla 4 köşe)
+  const r = route(M.entry, shelfOf(1).stand);
+  assert.ok(r.length <= 4);
+  assert.ok(routeLength(r) > 0);
+  assert.deepEqual(zonePoint("entry"), M.entry);
+  assert.deepEqual(zonePoint("exit"), M.checkout);
+  assert.deepEqual(zonePoint(7), shelfOf(7).stand);
+  assert.equal(shelfOf(99), null);
 });
 
 test("saatlik ve günlük kovalar", () => {

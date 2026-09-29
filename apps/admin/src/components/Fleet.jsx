@@ -1,9 +1,9 @@
 import React from "react";
-import { AISLES, CART_STAGES, LOW_BATTERY, fleetSummary, cartZone } from "@ahududu/domain";
+import { AISLES, CART_STAGES, LOW_BATTERY, fleetSummary } from "@ahududu/domain";
 import { price } from "../format.js";
+import StoreMap from "./StoreMap.jsx";
 
 const VERIFY = { empty: "Boş", ok: "Doğrulandı", wait: "Ürün bekleniyor", bad: "Okutulmamış ürün" };
-const ZONES = [{ key: "entry", name: "Giriş", sub: "bekleyen arabalar" }, ...AISLES.map((a) => ({ key: a.no, name: "Reyon " + a.no, sub: a.name })), { key: "exit", name: "Kasa / Çıkış", sub: "ödeme" }];
 const ago = (iso, now) => {
   const s = Math.max(0, Math.round((now - Date.parse(iso)) / 1000));
   return s < 60 ? s + " sn önce" : Math.round(s / 60) + " dk önce";
@@ -48,17 +48,7 @@ export default function Fleet({ carts }) {
           </ul>
         </div>
         <div className="map">
-          {ZONES.map((z) => {
-            const here = f.list.filter((c) => cartZone(c) === z.key);
-            return (
-              <div key={z.key} className={"zone" + (typeof z.key === "number" ? "" : " edge")}>
-                <b>{z.name}</b><small>{z.sub}</small>
-                <div className="chips">
-                  {here.map((c) => <span key={c.id} className={"chip st-" + stateOf(c)} title={`#${c.id} · ${c.stale ? "Bağlantı yok" : CART_STAGES[c.stage]}`}>#{c.id}</span>)}
-                </div>
-              </div>
-            );
-          })}
+          <StoreMap carts={f.list} />
         </div>
       </section>
 

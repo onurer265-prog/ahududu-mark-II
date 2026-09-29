@@ -6,7 +6,7 @@ import { price, kg } from "./format.js";
 // Katalog büyük olduğu için reyon sekmeleri + arama var.
 const norm = (s) => s.toLocaleLowerCase("tr-TR");
 
-export default function Shelf({ products, scaleConnected, onPick, onSneak, onClearExtra, extra }) {
+export default function Shelf({ products, scaleConnected, onPick, onFind, onSneak, onClearExtra, extra }) {
   const [aisle, setAisle] = useState(AISLES[0].no);
   const [q, setQ] = useState("");
   const counts = useMemo(() => Object.fromEntries(AISLES.map((a) => [a.no, products.filter((p) => p.aisle === a.no).length])), [products]);
@@ -20,7 +20,10 @@ export default function Shelf({ products, scaleConnected, onPick, onSneak, onCle
     <section className="shelf" aria-label="Raf">
       <div className="shelf-head">
         <h2 className="label">RAFTAN ÜRÜN AL <span>({scaleConnected ? "okut, sonra arabaya bırak" : "barkod okutma simülasyonu"})</span></h2>
-        <input type="search" className="find" placeholder="Ürün ara" aria-label="Ürün ara" value={q} onChange={(e) => setQ(e.target.value)} />
+        <div className="shelf-tools">
+          <input type="search" className="find" placeholder="Ürün ara" aria-label="Ürün ara" value={q} onChange={(e) => setQ(e.target.value)} />
+          <button className="btn findmap" onClick={onFind}><span aria-hidden="true">🗺️</span> Ürün bul</button>
+        </div>
       </div>
       {!s && (
         <div className="aisles" role="tablist" aria-label="Reyonlar">
