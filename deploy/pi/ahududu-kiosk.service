@@ -1,0 +1,15 @@
+# Kiosk arayüzü: derlenmiş hali (apps/kiosk/dist) http://localhost:5173'te. /api isteklerini sunucuya iletir.
+# Derleme kurulum.sh / guncelle.sh içinde yapılır.
+[Unit]
+Description=Ahududu kiosk arayuzu
+After=network.target ahududu-server.service
+
+[Service]
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=/usr/bin/node node_modules/vite/bin/vite.js preview apps/kiosk --port 5173 --strictPort
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

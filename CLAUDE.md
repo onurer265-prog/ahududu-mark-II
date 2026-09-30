@@ -53,7 +53,7 @@ npm run dev:agent        # gerçek ESP32 (SERIAL_PORT=/dev/ttyUSB0 ile zorlanabi
 - [x] Yazılım simülasyonu (arayüz + backend + veritabanı mantığı)
 - [x] Faz 3 barkod okuyucudan gerçek girdi (useBarcodeScanner) — yeniden kurulumda eklendi
 - [x] Faz 4 terazi → Pi → kiosk köprüsü (cart-agent + useScale) — yeniden kurulumda eklendi, **gerçek donanımda henüz test edilmedi**
-- [ ] Raspberry Pi 4 kurulum + Chromium kiosk autostart (bkz. docs/raspberry-pi.md)
+- [ ] Raspberry Pi 4 kurulum + Chromium kiosk autostart — **betikler hazır, donanımda denenmedi**: `docs/raspberry-pi.md` (Windows'tan Imager + SSH, Linux'a geçmek gerekmez), `deploy/pi/kurulum.sh` (servisler: ahududu-server/agent/kiosk, Chromium autostart, gece 03:00 yedek; `SUNUCU=` ile çok araba, `ARABA=` numara), `deploy/pi/guncelle.sh`. Pi'de kiosk derlenmiş haliyle (`vite preview`, :5173) çalışır. Mark I'de BIOS bozulmuştu (Pi kurulumuyla ilgisi yok, muhtemelen otomatik BIOS güncellemesi / elektrik) — kod GitHub'da, yedekler cihaz dışına kopyalanmalı.
 - [ ] Mekanik montaj (Donanım Yerleşimi, yüzer sepet + sabit çerçeve)
 - [x] Yönetim paneli: Genel Bakış + Ürün Girişi (`apps/admin`). Muhasebe ve İK istenmedi.
 - [ ] Panel için giriş / yetki (şu an herkes ürün silebilir)

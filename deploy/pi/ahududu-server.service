@@ -1,0 +1,15 @@
+# Ahududu API + veritabanı (SQLite). kurulum.sh __USER__ ve __DIR__ alanlarını doldurup /etc/systemd/system'e kopyalar.
+[Unit]
+Description=Ahududu sunucu (API + veritabani)
+After=network.target
+
+[Service]
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=/usr/bin/node apps/server/src/index.js
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

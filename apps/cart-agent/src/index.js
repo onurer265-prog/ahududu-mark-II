@@ -84,7 +84,11 @@ if (FAKE) {
     const port = new SerialPort({ path, baudRate: BAUD });
     port.pipe(new ReadlineParser({ delimiter: "\n" })).on("data", handleLine);
     port.on("open", () => console.log(`[cart-agent] seri port açık: ${path} @ ${BAUD}`));
-    port.on("error", (e) => console.error("[cart-agent] seri hata:", e.message));
+    port.on("error", (e) => {
+      console.error("[cart-agent] seri hata:", e.message);
+      // Port hiç açılamadıysa "close" gelmez; yeniden denemeyi burada başlat (ESP32 geç takılırsa)
+      if (!port.isOpen) setTimeout(open, 2000);
+    });
     port.on("close", () => { console.warn("[cart-agent] port kapandı, 2 sn sonra yeniden denenecek"); setTimeout(open, 2000); });
     tare = () => port.write("t\n");
   };

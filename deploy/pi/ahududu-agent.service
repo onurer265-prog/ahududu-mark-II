@@ -1,0 +1,16 @@
+# Terazi köprüsü: ESP32 (USB seri) → ws://localhost:8787 → kiosk.
+# ESP32 takılı değilse çıkar ve 10 sn'de bir yeniden dener. Port elle: Environment=SERIAL_PORT=/dev/ttyUSB0
+[Unit]
+Description=Ahududu cart-agent (terazi koprusu)
+After=network.target
+
+[Service]
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=/usr/bin/node apps/cart-agent/src/index.js
+Restart=always
+RestartSec=10
+# Environment=SERIAL_PORT=/dev/ttyUSB0
+
+[Install]
+WantedBy=multi-user.target
