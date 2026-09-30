@@ -9,6 +9,7 @@
     "dev": "npm run dev -w @ahududu/kiosk",
     "dev:server": "npm run start -w @ahududu/server",
     "dev:admin": "npm run dev -w @ahududu/admin",
+    "db:yedek": "npm run db:yedek -w @ahududu/server",
     "dev:agent": "npm run start -w @ahududu/cart-agent",
     "dev:agent:fake": "npm run fake -w @ahududu/cart-agent",
     "build": "npm run build -w @ahududu/kiosk && npm run build -w @ahududu/admin",

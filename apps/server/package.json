@@ -3,8 +3,10 @@
   "version": "0.2.0",
   "type": "module",
   "main": "src/index.js",
+  "engines": { "node": ">=22.13" },
   "scripts": {
     "start": "node src/index.js",
+    "db:yedek": "node src/backup.js",
     "test": "node --test test/*.test.js"
   },
   "dependencies": {

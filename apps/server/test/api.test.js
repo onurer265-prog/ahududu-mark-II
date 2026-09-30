@@ -1,19 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createApp } from "../src/app.js";
-import { createStore } from "../src/store.js";
-import { BARCODE_RENAMES, DEFAULT_ADS, DEFAULT_PRODUCTS } from "@ahududu/domain";
-
-const SUT = DEFAULT_PRODUCTS[0].barcode; // Süt (1L) 1030 g / 34,50 ₺
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { createApp } from "../src/app.js";
+import { openStore } from "../src/db.js";
+import { BARCODE_RENAMES, DEFAULT_ADS, DEFAULT_PRODUCTS } from "@ahududu/domain";
 
-async function withServer(fn) {
-  const srv = createApp(createStore(null)).listen(0);
+const SUT = DEFAULT_PRODUCTS[0].barcode; // Süt (1L) 1030 g / 34,50 ₺
+
+async function withServer(fn, store = openStore()) {
+  const srv = createApp(store).listen(0);
   await new Promise((r) => srv.once("listening", r));
   const base = `http://127.0.0.1:${srv.address().port}/api`;
-  try { await fn(base); } finally { srv.close(); }
+  try { await fn(base, store); } finally { srv.close(); }
 }
 
 test("ürün listesi ve ekleme", () => withServer(async (b) => {
@@ -75,10 +75,18 @@ test("araba durumları", () => withServer(async (b) => {
 // Mark I dönemindeki gibi eski (869…) barkodlu 8 ürün
 const OLD = Object.keys(BARCODE_RENAMES);
 const oldMarkI = () => DEFAULT_PRODUCTS.slice(0, 8).map(({ aisle, ...p }, i) => ({ ...p, barcode: OLD[i] }));
-const tmpFile = () => path.join(fs.mkdtempSync(path.join(os.tmpdir(), "ahududu-")), "db.json");
+const tmpDir = () => fs.mkdtempSync(path.join(os.tmpdir(), "ahududu-"));
 
-test("eski veri dosyası yeni kataloğa bir kez taşınır", () => {
-  const file = tmpFile();
+/** Eski JSON'u yazar, yeni bir veritabanını ondan aktararak açar; testte dizi gibi kontrol edebilmek için düz nesne döner. */
+function importFrom(json) {
+  const dir = tmpDir(), jsonFile = path.join(dir, "db.json"), dbFile = path.join(dir, "ahududu.db");
+  fs.writeFileSync(jsonFile, JSON.stringify(json));
+  const store = openStore(dbFile, { importJson: jsonFile });
+  const view = { products: store.products.list(), ads: store.ads.list(), sales: store.sales.list(), importedFrom: store.importedFrom };
+  return { store, view, dbFile, jsonFile };
+}
+
+test("eski JSON veritabanına aktarılır ve güncel kataloğa taşınır", () => {
   const old = {
     products: [...oldMarkI(), { barcode: "8690009999999", name: "Benim ürünüm", price: 5, weight: 100 }],
     ads: [{ id: "ad-zeytin", brand: "Eski", title: "Eski varsayılan", tone: "purple", place: "both", active: true },
@@ -86,9 +94,9 @@ test("eski veri dosyası yeni kataloğa bir kez taşınır", () => {
     sales: [{ id: "F-1001", total: 46.5, items: [{ barcode: OLD[0], name: "Süt (1L)", qty: 1, price: 34.5 }, { barcode: OLD[1], name: "Ekmek", qty: 1, price: 12 }] }],
     rejects: [], seq: 1001,
   };
-  fs.writeFileSync(file, JSON.stringify(old));
-  let db = createStore(file).db;
-  assert.equal(db.catalogVersion, 3);
+  const { store, view: db, dbFile, jsonFile } = importFrom(old);
+  const jsonBefore = fs.readFileSync(jsonFile, "utf8");
+  assert.equal(db.importedFrom, jsonFile);
   assert.ok(!db.products.some((p) => BARCODE_RENAMES[p.barcode]));             // eski barkod kalmadı
   assert.deepEqual(db.sales[0].items.map((i) => i.barcode), [SUT, DEFAULT_PRODUCTS[1].barcode]); // satış geçmişi çevrildi
   assert.equal(db.sales[0].total, 46.5);
@@ -99,30 +107,67 @@ test("eski veri dosyası yeni kataloğa bir kez taşınır", () => {
   assert.ok(db.ads.some((a) => a.id === "ad-benim"));                           // kullanıcının reklamı kaldı
   assert.equal(db.ads.length, DEFAULT_ADS.length + 1);
   assert.equal(db.sales.length, 1);                                             // satış geçmişi korunur
-  // Kullanıcı bir varsayılan ürünü silerse yeniden yüklemede geri gelmez
-  db.products = db.products.filter((p) => p.barcode !== DEFAULT_PRODUCTS[20].barcode);
-  fs.writeFileSync(file, JSON.stringify(db));
-  db = createStore(file).db;
-  assert.ok(!db.products.some((p) => p.barcode === DEFAULT_PRODUCTS[20].barcode));
+  // Aktarım bir kez yapılır: silinen ürün yeniden açılışta geri gelmez, JSON'a dokunulmaz, fiş sırası devam eder
+  store.products.remove(DEFAULT_PRODUCTS[20].barcode);
+  store.close();
+  const again = openStore(dbFile, { importJson: jsonFile });
+  assert.ok(!again.products.get(DEFAULT_PRODUCTS[20].barcode));
+  assert.equal(again.sales.list().length, 1);
+  assert.equal(again.sales.record({ cartId: "cart-0417", method: "Kart", total: 12, items: [{ barcode: DEFAULT_PRODUCTS[1].barcode, name: "Ekmek", qty: 1, price: 12 }] }).id, "F-1002");
+  again.close();
+  assert.equal(fs.readFileSync(jsonFile, "utf8"), jsonBefore);
 });
 
-test("sürüm 2 dosyası (büyük katalog + eski Mark I barkodları) sürüm 3'e taşınır", () => {
-  const file = tmpFile();
+test("sürüm 2 JSON (büyük katalog + eski Mark I barkodları) ikilenmeden aktarılır", () => {
   const v2 = {
     catalogVersion: 2,
     products: [...oldMarkI(), ...DEFAULT_PRODUCTS.slice(8).map((p) => ({ ...p })), { barcode: "8690009999999", name: "Benim ürünüm", price: 5, weight: 100 }],
     ads: DEFAULT_ADS.map((a) => ({ ...a })),
     sales: [{ id: "F-1001", total: 34.5, items: [{ barcode: OLD[0], name: "Süt (1L)", qty: 1, price: 34.5 }] }], rejects: [], seq: 1001,
   };
-  fs.writeFileSync(file, JSON.stringify(v2));
-  const db = createStore(file).db;
-  assert.equal(db.catalogVersion, 3);
+  const { store, view: db } = importFrom(v2);
   assert.equal(db.products.length, DEFAULT_PRODUCTS.length + 1);               // ikilenme yok
   assert.equal(new Set(db.products.map((p) => p.barcode)).size, db.products.length);
   assert.equal(db.products[0].barcode, SUT);
   assert.equal(db.sales[0].items[0].barcode, SUT);
   assert.equal(db.ads.length, DEFAULT_ADS.length);                              // reklamlara dokunulmadı
-  assert.equal(JSON.parse(fs.readFileSync(file, "utf8")).catalogVersion, 3);    // diske yazıldı
+  store.close();
+});
+
+test("veritabanı: kalıcılık, kuruş hassasiyeti, fiş sırası, yedek", async () => {
+  const dir = tmpDir(), dbFile = path.join(dir, "ahududu.db");
+  let store = openStore(dbFile); // JSON yok → varsayılan katalog
+  assert.equal(store.products.list().length, DEFAULT_PRODUCTS.length);
+  assert.equal(store.importedFrom, null);
+  // 0,10 + 0,20 ₺ gibi fiyatlar kuruşla saklandığı için tam 0,30 olur
+  store.products.add({ barcode: "2000009000011", name: "Sakız", price: 0.1, weight: 10 });
+  store.products.add({ barcode: "2000009000028", name: "Şeker", price: 0.2, weight: 10 });
+  await withServer(async (b) => {
+    const cart = [{ barcode: "2000009000011", qty: 1 }, { barcode: "2000009000028", qty: 1 }];
+    const sale = await (await fetch(b + "/checkout", { method: "POST", body: JSON.stringify({ cart, measured: 20, method: "Kart", cartId: "cart-0417" }) })).json();
+    assert.equal(sale.total, 0.3);
+    assert.equal(sale.id, "F-1001");
+    const second = await (await fetch(b + "/checkout", { method: "POST", body: JSON.stringify({ cart, measured: 20, method: "QR kod" }) })).json();
+    assert.equal(second.id, "F-1002");
+    assert.equal((await fetch(b + "/checkout", { method: "POST", body: JSON.stringify({ cart, measured: 900 }) })).status, 409);
+    const health = await (await fetch(b + "/health")).json();
+    assert.deepEqual([health.db.sales, health.db.rejects, health.db.revenue], [2, 1, 0.6]);
+  }, store);
+  // Ürün sonradan değişse de geçmiş satış satış anındaki ad ve fiyatla kalır
+  store.products.update({ barcode: "2000009000011", name: "Sakız (yeni)", price: 5, weight: 10 });
+  store.close();
+  store = openStore(dbFile);                                                      // yeniden aç: veriler duruyor
+  const last = store.sales.list()[0];
+  assert.equal(last.id, "F-1002");                                                // en yeni satış önce
+  assert.deepEqual(last.items.map((i) => [i.name, i.price]), [["Sakız", 0.1], ["Şeker", 0.2]]);
+  assert.equal(store.products.get("2000009000011").name, "Sakız (yeni)");
+  assert.equal(store.rejects.list().length, 1);
+  // Yedek: ayrı bir dosyaya tutarlı kopya
+  const backup = store.backup(path.join(dir, "yedek", "test.db"));
+  store.close();
+  const copy = openStore(backup);
+  assert.deepEqual([copy.stats().sales, copy.stats().products], [2, DEFAULT_PRODUCTS.length + 2]);
+  copy.close();
 });
 
 test("ürün düzenleme", () => withServer(async (b) => {

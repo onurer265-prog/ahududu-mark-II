@@ -2,5 +2,10 @@ node_modules/
 dist/
 *.log
 .DS_Store
+# Yerel veriler (veritabanı, yedekler, eski JSON) — git'e girmez
 apps/server/data/*.json
+apps/server/data/*.db
+apps/server/data/*.db-wal
+apps/server/data/*.db-shm
+apps/server/data/yedek/
 !apps/server/data/.gitkeep
